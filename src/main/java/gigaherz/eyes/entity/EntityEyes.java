@@ -3,8 +3,8 @@ package gigaherz.eyes.entity;
 import gigaherz.eyes.EyesInTheDarkness;
 import net.minecraft.block.material.EnumPushReaction;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIWanderAvoidWater;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
@@ -28,7 +28,12 @@ public class EntityEyes extends EntityMob
     public EntityEyes(World worldIn)
     {
         super(worldIn);
-        EyesInTheDarkness.LOGGER.warn("Entity created.");
+    }
+
+    @Override
+    protected void initEntityAI()
+    {
+        this.tasks.addTask(8, new EntityAIWanderAvoidWater(this, 0.1D));
     }
 
     @Override
@@ -57,25 +62,28 @@ public class EntityEyes extends EntityMob
         }
         else
         {
-            float maxWatchDistance = 16;
-            Vec3d eyes = getPositionEyes(1);
-            List<EntityPlayer> entities = world.getEntitiesWithinAABB(EntityPlayer.class,
-                    new AxisAlignedBB(eyes.x-maxWatchDistance, eyes.y-maxWatchDistance, eyes.z-maxWatchDistance,
-                            eyes.x+maxWatchDistance, eyes.y+maxWatchDistance, eyes.z+maxWatchDistance), (player) -> {
+            if (world.getLight(getPosition(), false) < 8)
+            {
+                float maxWatchDistance = 16;
+                Vec3d eyes = getPositionEyes(1);
+                List<EntityPlayer> entities = world.getEntitiesWithinAABB(EntityPlayer.class,
+                        new AxisAlignedBB(eyes.x - maxWatchDistance, eyes.y - maxWatchDistance, eyes.z - maxWatchDistance,
+                                eyes.x + maxWatchDistance, eyes.y + maxWatchDistance, eyes.z + maxWatchDistance), (player) -> {
 
-                if (player.getPositionEyes(1).distanceTo(eyes) > maxWatchDistance)
-                    return false;
+                            if (player.getPositionEyes(1).distanceTo(eyes) > maxWatchDistance)
+                                return false;
 
-                Vec3d vec3d = player.getLook(1.0F).normalize();
-                Vec3d vec3d1 = new Vec3d(this.posX - player.posX, this.getEntityBoundingBox().minY + (double)this.getEyeHeight() - (player.posY + (double)player.getEyeHeight()), this.posZ - player.posZ);
-                double d0 = vec3d1.length();
-                vec3d1 = vec3d1.normalize();
-                double d1 = vec3d.dotProduct(vec3d1);
-                return (d1 > 1.0D - 0.025D / d0) && player.canEntityBeSeen(this);
-            });
+                            Vec3d vec3d = player.getLook(1.0F).normalize();
+                            Vec3d vec3d1 = new Vec3d(this.posX - player.posX, this.getEntityBoundingBox().minY + (double) this.getEyeHeight() - (player.posY + (double) player.getEyeHeight()), this.posZ - player.posZ);
+                            double d0 = vec3d1.length();
+                            vec3d1 = vec3d1.normalize();
+                            double d1 = vec3d.dotProduct(vec3d1);
+                            return (d1 > 1.0D - 0.025D / d0) && player.canEntityBeSeen(this);
+                        });
 
-            if(entities.size() > 0)
-                disappear();
+                if (entities.size() > 0)
+                    disappear();
+            }
         }
     }
 
@@ -161,12 +169,5 @@ public class EntityEyes extends EntityMob
     protected SoundEvent getHurtSound(DamageSource damageSourceIn)
     {
         return EyesInTheDarkness.eyes_disappear;
-    }
-
-    @Override
-    public void setDead()
-    {
-        EyesInTheDarkness.LOGGER.warn("Entity dead.");
-        super.setDead();
     }
 }

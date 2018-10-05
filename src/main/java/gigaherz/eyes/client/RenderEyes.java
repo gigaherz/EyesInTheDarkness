@@ -12,7 +12,10 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraftforge.client.model.pipeline.LightUtil;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
 
 import javax.annotation.Nullable;
 
@@ -48,10 +51,34 @@ public class RenderEyes extends Render<EntityEyes>
 
         GlStateManager.depthMask(false);
 
-        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 0xF0F0, 0);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        //int light = entity.world.getLight(entity.getPosition(), false);
+
+        int blockLight = entity.world.getLightFor(EnumSkyBlock.BLOCK, entity.getPosition());
+
+        if (entity.world.provider.hasSkyLight() && entity.world.canSeeSky(entity.getPosition()))
+        {
+            int skyLight = entity.world.getLightFor(EnumSkyBlock.SKY, entity.getPosition())
+                    - entity.world.getSkylightSubtracted();
+            if (skyLight > 0)
+            {
+                float celestialAngle = entity.world.getCelestialAngleRadians(partialTicks);
+                float f1 = celestialAngle < (float)Math.PI ? 0.0F : ((float)Math.PI * 2F);
+                celestialAngle = celestialAngle + (f1 - celestialAngle) * 0.2F;
+                skyLight = Math.round((float)skyLight * MathHelper.cos(celestialAngle));
+            }
+
+            skyLight = MathHelper.clamp(skyLight, 0, 15);
+
+            blockLight = Math.max(blockLight, skyLight);
+        }
+
+        float mixAlpha = MathHelper.clamp((8-blockLight)/8.0f,0,1);
+
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+        //GL14.glBlendColor(1,1,1, mixAlpha);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, mixAlpha);
 
         Minecraft.getMinecraft().entityRenderer.setupFogColor(true);
 
@@ -90,6 +117,7 @@ public class RenderEyes extends Render<EntityEyes>
         Minecraft.getMinecraft().entityRenderer.setupFogColor(false);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 0x00F0, 0x00F0);
 
+        //GL14.glBlendColor(1,1,1, 1);
         GlStateManager.disableBlend();
         GlStateManager.enableAlpha();
         GlStateManager.enableLighting();

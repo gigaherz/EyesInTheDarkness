@@ -30,6 +30,11 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
+
 @Mod.EventBusSubscriber
 @Mod(modid = EyesInTheDarkness.MODID, version = EyesInTheDarkness.VERSION)
 public class EyesInTheDarkness
@@ -68,13 +73,28 @@ public class EyesInTheDarkness
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityEntry> event)
     {
+        Calendar now = Calendar.getInstance();
+        Calendar nextHalloween = new Calendar.Builder()
+                .setDate(now.get(Calendar.YEAR), 9, 31)
+                .setTimeOfDay(23,59,59,999).build();
+        if (now.after(nextHalloween))
+        {
+            nextHalloween.add(Calendar.YEAR, 1);
+        }
+        int daysBefore = (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
+
+        int weightMin = 15;
+        int weightMax = 150;
+
+        int currentWeight = weightMin + ((weightMax-weightMin) * (30-daysBefore)) / 30;
+
         int entityId = 1;
         event.getRegistry().registerAll(
                 EntityEntryBuilder.create().name("eyes")
                         .id(location("eyes"), entityId++)
                         .entity(EntityEyes.class).factory(EntityEyes::new)
                         .tracker(80, 3, true)
-                        .spawn(EnumCreatureType.MONSTER, 1, 1, 2, ForgeRegistries.BIOMES.getValuesCollection())
+                        .spawn(EnumCreatureType.MONSTER, currentWeight, 1, 2, ForgeRegistries.BIOMES.getValuesCollection())
                         .egg(0x000000, 0x7F0000)
                         .build()
         );
