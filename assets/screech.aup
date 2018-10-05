@@ -1,0 +1,111 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="screech_data" version="1.3.0" audacityversion="2.3.0" sel0="-0.0000000000" sel1="2.5098165396" vpos="0" h="0.0000000000" zoom="146.2258273525" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+	<tags>
+		<tag name="TITLE" value="161105_004"/>
+		<tag name="Encoded by" value="SONY IC RECORDER MP3 3.1.8"/>
+		<tag name="ARTIST" value="My Recording"/>
+	</tags>
+	<wavetrack name="367494__funwithsound__child-tickle" channel="2" linked="0" mute="1" solo="0" height="68" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="722304">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808cc0.au" len="262144" min="-0.779843" max="1.007227" rms="0.055932"/>
+				</waveblock>
+				<waveblock start="262144">
+					<simpleblockfile filename="e0808f42.au" len="262144" min="-1.032144" max="1.017117" rms="0.108388"/>
+				</waveblock>
+				<waveblock start="524288">
+					<simpleblockfile filename="e0808ef2.au" len="198016" min="-0.876381" max="0.943938" rms="0.119208"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="1" solo="0" height="75" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="592384">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808c08.au" len="262144" min="-0.543762" max="0.496674" rms="0.09247"/>
+				</waveblock>
+				<waveblock start="262144">
+					<simpleblockfile filename="e0808189.au" len="262144" min="-0.737549" max="0.747131" rms="0.090672"/>
+				</waveblock>
+				<waveblock start="524288">
+					<simpleblockfile filename="e080809c.au" len="68096" min="-0.54364" max="0.429657" rms="0.100029"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="365632__obxjohn__boy-or-young-child-laughing" channel="2" linked="0" mute="1" solo="0" height="77" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="220160">
+				<waveblock start="0">
+					<simpleblockfile filename="e08089c7.au" len="220160" min="-0.454102" max="0.481964" rms="0.038985"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.04104308" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="63919">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808648.au" len="63919" min="-0.240624" max="0.261133" rms="0.054574"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="367494__funwithsound__child-tickle" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="44100" gain="0.199526" pan="0.0" colorindex="0">
+		<waveclip offset="0.15045351" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="64842">
+				<waveblock start="0">
+					<simpleblockfile filename="e080866b.au" len="64842" min="-0.757233" max="0.798391" rms="0.163337"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="365632__obxjohn__boy-or-young-child-laughing" channel="2" linked="0" mute="0" solo="0" height="128" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.28040816" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="44383">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808427.au" len="44383" min="-1.082179" max="0.878396" rms="0.102054"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="365632__obxjohn__boy-or-young-child-laughing" channel="2" linked="0" mute="0" solo="0" height="77" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.47873016" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="32571">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808169.au" len="32571" min="-0.747786" max="0.891283" rms="0.079658"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="0" solo="0" height="108" minimized="0" isSelected="0" rate="44100" gain="0.630957" pan="0.0" colorindex="0">
+		<waveclip offset="-0.08889951" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="35889">
+				<waveblock start="0">
+					<simpleblockfile filename="e08087cd.au" len="35889" min="-0.737549" max="0.747131" rms="0.173557"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="365632__obxjohn__boy-or-young-child-laughing" channel="2" linked="0" mute="0" solo="0" height="129" minimized="0" isSelected="1" rate="44100" gain="0.562341" pan="0.0" colorindex="0">
+		<waveclip offset="0.64970522" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="45539">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808b17.au" len="45539" min="-0.666261" max="0.795241" rms="0.066136"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>

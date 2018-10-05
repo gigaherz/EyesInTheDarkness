@@ -1,0 +1,20 @@
+{
+  "mob.eyes.laugh": {
+    "category": "entity",
+    "subtitle": "sound.eyesinthedarkness.eyes.laugh",
+    "sounds": [
+      "eyesinthedarkness:tickle1",
+      "eyesinthedarkness:tickle2",
+      "eyesinthedarkness:tickle3",
+      "eyesinthedarkness:tickle4"
+    ]
+  },
+
+  "mob.eyes.disappear": {
+    "category": "entity",
+    "subtitle": "sound.eyesinthedarkness.eyes.disappear",
+    "sounds": [
+      "eyesinthedarkness:screech"
+    ]
+  }
+}
