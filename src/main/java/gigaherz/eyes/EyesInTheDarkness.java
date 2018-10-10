@@ -73,15 +73,7 @@ public class EyesInTheDarkness
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityEntry> event)
     {
-        Calendar now = Calendar.getInstance();
-        Calendar nextHalloween = new Calendar.Builder()
-                .setDate(now.get(Calendar.YEAR), 9, 31)
-                .setTimeOfDay(23,59,59,999).build();
-        if (now.after(nextHalloween))
-        {
-            nextHalloween.add(Calendar.YEAR, 1);
-        }
-        int daysBefore = (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
+        int daysBefore = getDaysUntilNextHalloween();
 
         int weightMin = 15;
         int weightMax = 150;
@@ -99,6 +91,19 @@ public class EyesInTheDarkness
                         .build()
         );
         LOGGER.debug("Next entity id: " + entityId);
+    }
+
+    private static int getDaysUntilNextHalloween()
+    {
+        Calendar now = Calendar.getInstance();
+        Calendar nextHalloween = new Calendar.Builder()
+                .setDate(now.get(Calendar.YEAR), 9, 31)
+                .setTimeOfDay(23,59,59,999).build();
+        if (now.after(nextHalloween))
+        {
+            nextHalloween.add(Calendar.YEAR, 1);
+        }
+        return (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
     }
 
     @SuppressWarnings("unchecked")

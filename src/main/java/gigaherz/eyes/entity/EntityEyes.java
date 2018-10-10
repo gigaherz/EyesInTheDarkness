@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -62,7 +63,8 @@ public class EntityEyes extends EntityMob
         }
         else
         {
-            if (world.getLight(getPosition(), false) < 8)
+            BlockPos position = getBlockPosEyes();
+            if (world.getLight(position, false) < 8)
             {
                 float maxWatchDistance = 16;
                 Vec3d eyes = getPositionEyes(1);
@@ -170,4 +172,15 @@ public class EntityEyes extends EntityMob
     {
         return EyesInTheDarkness.eyes_disappear;
     }
+
+
+    /**
+     * Get the position in the world. <b>{@code null} is not allowed!</b> If you are not an entity in the world, return
+     * the coordinates 0, 0, 0
+     */
+    public BlockPos getBlockPosEyes()
+    {
+        return new BlockPos(this.posX, this.posY + getEyeHeight(), this.posZ);
+    }
+
 }
