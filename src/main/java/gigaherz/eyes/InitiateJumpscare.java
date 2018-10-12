@@ -1,12 +1,18 @@
 package gigaherz.eyes;
 
+import gigaherz.eyes.client.JumpscareOverlay;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -61,7 +67,8 @@ public class InitiateJumpscare
         public static IMessage handle(InitiateJumpscare message)
         {
             Minecraft.getMinecraft().addScheduledTask(() -> {
-                    Minecraft.getMinecraft().player.addVelocity(message.vx, message.vy, message.vz);
+                JumpscareOverlay.INSTANCE.show(message.px, message.py, message.pz);
+                Minecraft.getMinecraft().player.playSound(EyesInTheDarkness.eyes_jumpscare, 1.0f, 1.0f);
             });
             return null;
         }

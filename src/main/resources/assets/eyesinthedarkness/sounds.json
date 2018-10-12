@@ -16,5 +16,13 @@
     "sounds": [
       "eyesinthedarkness:screech"
     ]
+  },
+
+  "mob.eyes.jumpscare": {
+    "category": "entity",
+    "subtitle": "sound.eyesinthedarkness.eyes.jumpscare",
+    "sounds": [
+      "eyesinthedarkness:screech2"
+    ]
   }
 }

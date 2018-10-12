@@ -1,12 +1,18 @@
 package gigaherz.eyes.entity;
 
 import gigaherz.eyes.EyesInTheDarkness;
+import gigaherz.eyes.InitiateJumpscare;
 import net.minecraft.block.material.EnumPushReaction;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIAttackMelee;
+import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAIWanderAvoidWater;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -15,6 +21,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import javax.vecmath.Vector3d;
 import java.util.List;
 import java.util.Random;
 
@@ -35,6 +42,69 @@ public class EntityEyes extends EntityMob
     protected void initEntityAI()
     {
         this.tasks.addTask(8, new EntityAIWanderAvoidWater(this, 0.1D));
+        this.tasks.addTask(8, new CreepTowardPlayer(this, 0.25D, false));
+        this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
+    }
+
+    private static class CreepTowardPlayer extends EntityAIAttackMelee
+    {
+        private final EntityEyes eyes;
+        public CreepTowardPlayer(EntityEyes creature, double speedIn, boolean useLongMemory)
+        {
+            super(creature, speedIn, useLongMemory);
+            eyes = creature;
+        }
+
+        @Override
+        public boolean shouldContinueExecuting()
+        {
+            if (isPlayerLookingInMyGeneralDirection())
+                return false;
+            return super.shouldContinueExecuting();
+        }
+
+        private boolean isPlayerLookingInMyGeneralDirection()
+        {
+            BlockPos position = eyes.getBlockPosEyes();
+            if (eyes.world.getLight(position, false) >= 8)
+                return true;
+
+            Vector3d selfPos = new Vector3d(eyes.posX, eyes.posY, eyes.posZ);
+            EntityLivingBase target = eyes.getAttackTarget();
+            if (target == null)
+                return false;
+            Vector3d playerPos = new Vector3d(target.posX, target.posY, target.posZ);
+            Vec3d lookVec = target.getLookVec();
+            Vector3d playerLook = new Vector3d(lookVec.x, lookVec.y, lookVec.z);
+            playerLook.normalize();
+
+            playerPos.sub(selfPos);
+            playerPos.normalize();
+
+            return playerLook.dot(playerPos) < 0;
+        }
+
+        @Override
+        public boolean shouldExecute()
+        {
+            if (isPlayerLookingInMyGeneralDirection())
+                return false;
+            return super.shouldExecute();
+        }
+    }
+
+    @Override
+    public boolean attackEntityAsMob(Entity entityIn)
+    {
+        if (entityIn instanceof EntityPlayerMP)
+            jumpscare((EntityPlayerMP)entityIn);
+        disappear();
+        return true;
+    }
+
+    public void jumpscare(EntityPlayerMP player)
+    {
+        EyesInTheDarkness.channel.sendTo(new InitiateJumpscare(this.posX, this.posY, this.posZ), player);
     }
 
     @Override

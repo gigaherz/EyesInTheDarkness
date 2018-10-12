@@ -23,10 +23,13 @@ import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,9 +53,16 @@ public class EyesInTheDarkness
     @GameRegistry.ObjectHolder(MODID + ":eyes_disappear")
     public static SoundEvent eyes_disappear;
 
+    @GameRegistry.ObjectHolder(MODID + ":eyes_jumpscare")
+    public static SoundEvent eyes_jumpscare;
+
+    private static final String CHANNEL=MODID;
+    public static SimpleNetworkWrapper channel;
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        registerNetwork();
     }
 
     @EventHandler
@@ -66,7 +76,8 @@ public class EyesInTheDarkness
     {
         event.getRegistry().registerAll(
                 new SoundEvent(location("mob.eyes.laugh")).setRegistryName(location("eyes_laugh")),
-                new SoundEvent(location("mob.eyes.disappear")).setRegistryName(location("eyes_disappear"))
+                new SoundEvent(location("mob.eyes.disappear")).setRegistryName(location("eyes_disappear")),
+                new SoundEvent(location("mob.eyes.jumpscare")).setRegistryName(location("eyes_jumpscare"))
         );
     }
 
@@ -104,6 +115,15 @@ public class EyesInTheDarkness
             nextHalloween.add(Calendar.YEAR, 1);
         }
         return (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
+    }
+
+    private void registerNetwork()
+    {
+        channel = NetworkRegistry.INSTANCE.newSimpleChannel(CHANNEL);
+
+        int messageNumber = 0;
+        channel.registerMessage(InitiateJumpscare.Handler.class, InitiateJumpscare.class, messageNumber++, Side.CLIENT);
+        LOGGER.debug("Final message number: " + messageNumber);
     }
 
     @SuppressWarnings("unchecked")

@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
-<project xmlns="http://audacity.sourceforge.net/xml/" projname="screech2_data" version="1.3.0" audacityversion="2.3.0" sel0="-0.0000226757" sel1="2.8449146606" vpos="0" h="0.0000000000" zoom="146.2258273525" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="screech2_data" version="1.3.0" audacityversion="2.3.0" sel0="3.3578199480" sel1="3.9664675557" vpos="0" h="0.0000000000" zoom="146.2258273525" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
 	<tags>
 		<tag name="TITLE" value="161105_004"/>
 		<tag name="Encoded by" value="SONY IC RECORDER MP3 3.1.8"/>
@@ -24,15 +24,12 @@
 	</wavetrack>
 	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="1" solo="0" height="75" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
 		<waveclip offset="-0.00000000" colorindex="0">
-			<sequence maxsamples="262144" sampleformat="262159" numsamples="592384">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="433382">
 				<waveblock start="0">
 					<simpleblockfile filename="e0808c08.au" len="262144" min="-0.543762" max="0.496674" rms="0.09247"/>
 				</waveblock>
 				<waveblock start="262144">
-					<simpleblockfile filename="e0808189.au" len="262144" min="-0.737549" max="0.747131" rms="0.090672"/>
-				</waveblock>
-				<waveblock start="524288">
-					<simpleblockfile filename="e080809c.au" len="68096" min="-0.54364" max="0.429657" rms="0.100029"/>
+					<simpleblockfile filename="e080813d.au" len="171238" min="-0.737549" max="0.747131" rms="0.096076"/>
 				</waveblock>
 			</sequence>
 			<envelope numpoints="0"/>
@@ -48,51 +45,87 @@
 			<envelope numpoints="0"/>
 		</waveclip>
 	</wavetrack>
-	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="0" solo="0" height="143" minimized="0" isSelected="0" rate="44100" gain="0.630957" pan="0.0" colorindex="0">
-		<waveclip offset="-0.02052154" colorindex="0">
-			<sequence maxsamples="262144" sampleformat="262159" numsamples="83594">
+	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="1" solo="0" height="75" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.06154724" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="437605">
 				<waveblock start="0">
-					<simpleblockfile filename="e0808fc5.au" len="83594" min="-0.752422" max="0.700175" rms="0.203142"/>
+					<simpleblockfile filename="e0808986.au" len="262144" min="-0.704875" max="0.695779" rms="0.093295"/>
+				</waveblock>
+				<waveblock start="262144">
+					<simpleblockfile filename="e08088c8.au" len="175461" min="-0.730051" max="0.742357" rms="0.092305"/>
 				</waveblock>
 			</sequence>
 			<envelope numpoints="0"/>
 		</waveclip>
 	</wavetrack>
-	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="0" solo="0" height="165" minimized="0" isSelected="0" rate="44100" gain="0.630957" pan="0.0" colorindex="0">
-		<waveclip offset="0.19832200" colorindex="0">
-			<sequence maxsamples="262144" sampleformat="262159" numsamples="84039">
+	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="1" solo="0" height="75" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="0.00000000" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="31365">
 				<waveblock start="0">
-					<simpleblockfile filename="e0808774.au" len="84039" min="-0.740947" max="0.73383" rms="0.196414"/>
+					<simpleblockfile filename="e08082b9.au" len="31365" min="-0.730051" max="0.742357" rms="0.187762"/>
 				</waveblock>
 			</sequence>
 			<envelope numpoints="0"/>
 		</waveclip>
 	</wavetrack>
-	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="0" solo="0" height="159" minimized="0" isSelected="0" rate="44100" gain="0.630957" pan="0.0" colorindex="0">
-		<waveclip offset="0.37609977" colorindex="0">
-			<sequence maxsamples="262144" sampleformat="262159" numsamples="84930">
+	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="1" solo="0" height="75" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.06154724" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="73587">
 				<waveblock start="0">
-					<simpleblockfile filename="e0808d8f.au" len="84930" min="-0.764345" max="0.721799" rms="0.195599"/>
+					<simpleblockfile filename="e0808128.au" len="73587" min="-0.543648" max="0.421425" rms="0.096549"/>
 				</waveblock>
 			</sequence>
 			<envelope numpoints="0"/>
 		</waveclip>
 	</wavetrack>
-	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="0" solo="0" height="149" minimized="0" isSelected="0" rate="44100" gain="0.707946" pan="0.0" colorindex="0">
-		<waveclip offset="0.08891156" colorindex="0">
-			<sequence maxsamples="262144" sampleformat="262159" numsamples="85525">
+	<wavetrack name="365632__obxjohn__boy-or-young-child-laughing" channel="2" linked="0" mute="1" solo="0" height="77" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="1.23780074" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="38604">
 				<waveblock start="0">
-					<simpleblockfile filename="e0808012.au" len="85525" min="-0.73193" max="0.769113" rms="0.197152"/>
+					<simpleblockfile filename="e0808e0c.au" len="38604" min="-0.488258" max="0.416646" rms="0.03919"/>
 				</waveblock>
 			</sequence>
 			<envelope numpoints="0"/>
 		</waveclip>
 	</wavetrack>
-	<wavetrack name="343823__brokenphono__high-pitch-chilling-screams" channel="2" linked="0" mute="0" solo="0" height="159" minimized="0" isSelected="1" rate="44100" gain="0.562341" pan="0.0" colorindex="0">
-		<waveclip offset="-0.00002268" colorindex="0">
-			<sequence maxsamples="262144" sampleformat="262159" numsamples="102325">
+	<wavetrack name="326332__charlenez__child-screaming" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="48000" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.38981250" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="213685">
 				<waveblock start="0">
-					<simpleblockfile filename="e0808b70.au" len="102325" min="-0.669325" max="0.744332" rms="0.192427"/>
+					<simpleblockfile filename="e080877a.au" len="213041" min="-0.485488" max="0.624305" rms="0.108695"/>
+				</waveblock>
+				<waveblock start="213041">
+					<simpleblockfile filename="e0808ef4.au" len="644" min="0.0" max="0.0" rms="0.0"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="351627__arnaud-coutancier__scream-3" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.11625850" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="118524">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808815.au" len="118524" min="-0.509003" max="0.433807" rms="0.127146"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="326332__charlenez__child-screaming" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="48000" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="5.35473120" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="180871">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808078.au" len="180871" min="-0.18129" max="0.255843" rms="0.060997"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="326332__charlenez__child-screaming" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="48000" gain="1.0" pan="0.0" colorindex="0">
+		<waveclip offset="-0.28039583" colorindex="0">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="213041">
+				<waveblock start="0">
+					<simpleblockfile filename="e0808bc2.au" len="213041" min="-0.485985" max="0.630951" rms="0.109435"/>
 				</waveblock>
 			</sequence>
 			<envelope numpoints="0"/>
