@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,8 +39,10 @@ public class JumpscareOverlay extends Gui
             new Rectangle(15,16,14,12),
     };
     private static final int ANIMATION_LENGTH = 10;
-    private static final int ANIMATION_LINGER = 20;
-    private static final int ANIMATION_TOTAL = ANIMATION_LENGTH + ANIMATION_LINGER;
+    private static final int ANIMATION_LINGER = 90;
+    private static final int ANIMATION_FADE = 60;
+    private static final int ANIMATION_FADE_START = ANIMATION_LENGTH + ANIMATION_LINGER;
+    private static final int ANIMATION_TOTAL = ANIMATION_LENGTH + ANIMATION_LINGER + ANIMATION_FADE;
 
     private JumpscareOverlay()
     {
@@ -50,6 +53,7 @@ public class JumpscareOverlay extends Gui
     public void show(double ex, double ey, double ez)
     {
         visible = true;
+        mc.world.playSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundCategory.HOSTILE, 1, 1, false);
     }
 
     @SubscribeEvent
@@ -94,9 +98,19 @@ public class JumpscareOverlay extends Gui
             scale = Math.min(scale, s);
         }
 
-        scale = Math.min(1, (1+progress)/(1+ANIMATION_LENGTH)) * scale;
+        scale = Math.min(1, (1+time)/(1+ANIMATION_LENGTH)) * scale;
 
         int currentFrame = Math.min(FRAMES.length-1, MathHelper.floor(FRAMES.length * time / ANIMATION_LENGTH));
+
+        if (time >= ANIMATION_FADE_START)
+        {
+            float fade = Math.max(0, (time - ANIMATION_FADE_START) / ANIMATION_FADE);
+            float blinkspeed = (float) (1 + Math.pow(fade, 3));
+            int blinkstate = MathHelper.floor(20 * blinkspeed) & 1;
+
+            if (blinkstate != 0)
+                return;
+        }
 
         Rectangle rect = FRAMES[currentFrame];
         int tx = rect.getX();

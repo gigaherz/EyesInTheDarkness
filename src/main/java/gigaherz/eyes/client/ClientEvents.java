@@ -2,6 +2,7 @@ package gigaherz.eyes.client;
 
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.entity.EntityEyes;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -18,13 +19,15 @@ public class ClientEvents
     {
         RenderingRegistry.registerEntityRenderingHandler(EntityEyes.class, RenderEyes::new);
     }
-
+/*
     @SubscribeEvent
     public static void debug_inputEvent(InputEvent.KeyInputEvent event)
     {
         if (Keyboard.isKeyDown(Keyboard.KEY_P))
         {
-            JumpscareOverlay.INSTANCE.show(0,0,0);
+            Minecraft mc = Minecraft.getMinecraft();
+            JumpscareOverlay.INSTANCE.show(mc.player.posX,mc.player.posY,mc.player.posZ);
         }
     }
+    */
 }

@@ -98,7 +98,9 @@ public class EntityEyes extends EntityMob
     {
         if (entityIn instanceof EntityPlayerMP)
             jumpscare((EntityPlayerMP)entityIn);
-        disappear();
+        // Don't play the disappear laugh here.
+        //disappear();
+        damageEntity(DamageSource.GENERIC, 1);
         return true;
     }
 

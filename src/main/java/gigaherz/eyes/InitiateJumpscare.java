@@ -68,7 +68,6 @@ public class InitiateJumpscare
         {
             Minecraft.getMinecraft().addScheduledTask(() -> {
                 JumpscareOverlay.INSTANCE.show(message.px, message.py, message.pz);
-                Minecraft.getMinecraft().player.playSound(EyesInTheDarkness.eyes_jumpscare, 1.0f, 1.0f);
             });
             return null;
         }
