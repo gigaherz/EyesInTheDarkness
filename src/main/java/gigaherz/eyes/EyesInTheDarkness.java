@@ -43,7 +43,7 @@ import java.util.Date;
 public class EyesInTheDarkness
 {
     public static final String MODID = "eyesinthedarkness";
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "@VERSION@";
 
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
@@ -65,12 +65,6 @@ public class EyesInTheDarkness
         registerNetwork();
     }
 
-    @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
-
-    }
-
     @SubscribeEvent
     public static void registerSounds(RegistryEvent.Register<SoundEvent> event)
     {
@@ -84,21 +78,38 @@ public class EyesInTheDarkness
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityEntry> event)
     {
-        int daysBefore = getDaysUntilNextHalloween();
-
-        int weightMin = 15;
-        int weightMax = 150;
-
-        int currentWeight = weightMin + ((weightMax-weightMin) * (30-daysBefore)) / 30;
-
         int entityId = 1;
+
+        EntityEntryBuilder<Entity> builder = EntityEntryBuilder.create().name("eyes")
+                .id(location("eyes"), entityId++)
+                .entity(EntityEyes.class).factory(EntityEyes::new)
+                .tracker(80, 3, true)
+                .egg(0x000000, 0x7F0000);
+
+        if(ConfigManager.EnableNaturalSpawn)
+        {
+            int currentWeight = ConfigManager.OverrideWeight;
+
+            if(currentWeight < 0)
+            {
+                int daysBefore = getDaysUntilNextHalloween();
+
+                int weightMin = 15;
+                int weightMax = 150;
+
+                currentWeight = weightMin + ((weightMax - weightMin) * (30 - daysBefore)) / 30;
+            }
+
+            if (currentWeight > 0)
+            {
+                builder = builder.spawn(EnumCreatureType.MONSTER, currentWeight,
+                        ConfigManager.MinimumPackSize, ConfigManager.MaximumPackSize,
+                        ForgeRegistries.BIOMES.getValuesCollection());
+            }
+        }
+
         event.getRegistry().registerAll(
-                EntityEntryBuilder.create().name("eyes")
-                        .id(location("eyes"), entityId++)
-                        .entity(EntityEyes.class).factory(EntityEyes::new)
-                        .tracker(80, 3, true)
-                        .spawn(EnumCreatureType.MONSTER, currentWeight, 1, 2, ForgeRegistries.BIOMES.getValuesCollection())
-                        .egg(0x000000, 0x7F0000)
+                builder
                         .build()
         );
         LOGGER.debug("Next entity id: " + entityId);

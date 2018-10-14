@@ -20,6 +20,7 @@ public class ClientEvents
         RenderingRegistry.registerEntityRenderingHandler(EntityEyes.class, RenderEyes::new);
     }
 
+    /*
     @SubscribeEvent
     public static void debug_inputEvent(InputEvent.KeyInputEvent event)
     {
@@ -29,5 +30,5 @@ public class ClientEvents
             JumpscareOverlay.INSTANCE.show(mc.player.posX,mc.player.posY,mc.player.posZ);
         }
     }
-
+    */
 }

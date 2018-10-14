@@ -36,19 +36,18 @@ public class JumpscareOverlay extends Gui
             new Rectangle(0,14,13,6),
             new Rectangle(0,21,13,6),
             new Rectangle(15,1,15,8),
-            new Rectangle(15,16,14,12),
+            new Rectangle(15,16,15,12),
     };
     private static final int ANIMATION_APPEAR = 10;
     private static final int ANIMATION_LINGER = 90;
     private static final int ANIMATION_BLINK = 60;
     private static final int ANIMATION_SCARE1 = 20;
-    private static final int ANIMATION_SCARE2 = 20;
     private static final int ANIMATION_FADE = 20;
     private static final int ANIMATION_BLINK_START = ANIMATION_APPEAR + ANIMATION_LINGER;
     private static final int ANIMATION_SCARE_START = ANIMATION_BLINK_START + ANIMATION_BLINK;
-    private static final int ANIMATION_FADE_START = ANIMATION_SCARE_START + ANIMATION_SCARE1 + ANIMATION_SCARE2;
+    private static final int ANIMATION_FADE_START = ANIMATION_SCARE_START + ANIMATION_SCARE1;
     private static final int ANIMATION_TOTAL = ANIMATION_APPEAR + ANIMATION_LINGER + ANIMATION_BLINK
-            + ANIMATION_SCARE1 + ANIMATION_SCARE2 + ANIMATION_FADE;
+            + ANIMATION_SCARE1 + ANIMATION_FADE;
 
     private JumpscareOverlay()
     {
@@ -82,9 +81,17 @@ public class JumpscareOverlay extends Gui
         if (!visible || event.getType() != RenderGameOverlayEvent.ElementType.ALL)
             return;
 
-        ScaledResolution res = event.getResolution();
+        int screenWidth = mc.displayWidth;
+        int screenHeight = mc.displayHeight;
 
-        mc.entityRenderer.setupOverlayRendering();
+        //mc.entityRenderer.setupOverlayRendering();
+        GlStateManager.clear(256);
+        GlStateManager.matrixMode(5889);
+        GlStateManager.loadIdentity();
+        GlStateManager.ortho(0.0D, screenWidth, screenHeight, 0.0D, 1000.0D, 3000.0D);
+        GlStateManager.matrixMode(5888);
+        GlStateManager.loadIdentity();
+        GlStateManager.translate(0.0F, 0.0F, -2000.0F);
 
         float time = progress + event.getPartialTicks();
         if (time >= ANIMATION_TOTAL)
@@ -100,34 +107,15 @@ public class JumpscareOverlay extends Gui
                         (ANIMATION_TOTAL-time)/ANIMATION_FADE
                 ), 0, 1
         );
-        int alpha = MathHelper.floor(darkening * 255);
 
-        drawRect(0,0, res.getScaledWidth(), res.getScaledHeight(), alpha << 24);
-        GlStateManager.color(1,1,1,1);
-        GlStateManager.enableBlend();
-
-        float scale = Float.MAX_VALUE;
-        for(Rectangle r : FRAMES)
-        {
-            float s = Math.min(
-                MathHelper.floor(res.getScaledWidth() * 0.8 / (float)r.getWidth()),
-                MathHelper.floor(res.getScaledHeight() * 0.8 / (float)r.getHeight()));
-            scale = Math.min(scale, s);
-        }
-
-        scale = Math.min(1, (1+time)/(1+ ANIMATION_APPEAR)) * scale;
-
-        int currentFrame = Math.min(FRAMES.length-1, MathHelper.floor(FRAMES.length * time / ANIMATION_APPEAR));
-
+        boolean showCreep = false;
+        int blinkstate = 0;
         if (time >= ANIMATION_BLINK_START)
         {
-            boolean showCreep;
-            int blinkstate;
             if(time >= ANIMATION_SCARE_START)
             {
                 blinkstate = 1;
-                showCreep = (time - ANIMATION_SCARE_START) > ANIMATION_SCARE1 &&
-                        time < ANIMATION_FADE_START;
+                showCreep = (time - ANIMATION_SCARE_START) > ANIMATION_SCARE1;
             }
             else
             {
@@ -136,57 +124,109 @@ public class JumpscareOverlay extends Gui
                 blinkstate = MathHelper.floor(20 * blinkspeed) & 1;
                 showCreep = blinkstate == 1;
             }
-
-            if (showCreep)
-            {
-                int texW = 2048;
-                int texH = 1024;
-
-                float scale1 = res.getScaledHeight() / (float)texH;
-                int drawY = 0;
-                int drawH = res.getScaledHeight();
-                int drawW = MathHelper.floor(texW * scale1);
-                int drawX = (res.getScaledWidth()-drawW)/2;
-                drawScaledCustomTexture(TEXTURE_FLASH, texW, texH, 0, 0, texW, texH, drawW, drawH, drawX, drawY);
-            }
-            if(blinkstate == 1)
-            {
-                return;
-            }
         }
+
+        int alpha = MathHelper.floor(darkening * 255);
+
+        if (showCreep)
+        {
+            int texW = 2048;
+            int texH = 1024;
+
+            float scale1 = screenHeight / (float)texH;
+            int drawY = 0;
+            int drawH = screenHeight;
+            int drawW = MathHelper.floor(texW * scale1);
+            int drawX = (screenWidth-drawW)/2;
+            GlStateManager.enableBlend();
+            drawScaledCustomTexture(TEXTURE_FLASH, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
+        }
+        else
+        {
+            drawRect(0,0, screenWidth, screenHeight, alpha << 24);
+            GlStateManager.color(1,1,1,1);
+            GlStateManager.enableBlend();
+        }
+
+        if(blinkstate == 1)
+        {
+            return;
+        }
+
+        float scale = Float.MAX_VALUE;
+        for(Rectangle r : FRAMES)
+        {
+            float s = Math.min(
+                    MathHelper.floor(screenWidth * 0.8 / (float)r.getWidth()),
+                    MathHelper.floor(screenHeight * 0.8 / (float)r.getHeight()));
+            scale = Math.min(scale, s);
+        }
+
+        scale = Math.min(1, (1+time)/(1+ ANIMATION_APPEAR)) * scale;
+
+        int currentFrame = Math.min(FRAMES.length-1, MathHelper.floor(FRAMES.length * time / ANIMATION_APPEAR));
 
         Rectangle rect = FRAMES[currentFrame];
         int tx = rect.getX();
         int ty = rect.getY();
         int tw = rect.getWidth();
         int th = rect.getHeight();
+
+        float drawW = (tw) * scale;
+        float drawH = (th) * scale;
+        float drawX = ((screenWidth - drawW)/2.0f);
+        float drawY = ((screenHeight - drawH)/2.0f);
+
         float texW = 32;
         float texH = 32;
-
-        float drawW = (tw+1) * scale;
-        float drawH = (th+1) * scale;
-        float drawX = (float) ((res.getScaledWidth_double() - drawW)/2);
-        float drawY = (float) ((res.getScaledHeight_double() - drawH)/2);
-
-        drawScaledCustomTexture(TEXTURE_EYES, texW, texH, tx, ty, tw, th, drawW, drawH, drawX, drawY);
+        drawScaledCustomTexture(TEXTURE_EYES, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float drawW, float drawH, float drawX, float drawY)
+    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
     {
-        mc.getRenderManager().renderEngine.bindTexture(tex);
+        mc.renderEngine.bindTexture(tex);
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 
-        buffer.pos(drawX, drawY, 0)
+        buffer.pos(targetX, targetY, 0)
                 .tex(tx / texW, ty / texH).endVertex();
-        buffer.pos(drawX, drawY + drawH, 0)
+        buffer.pos(targetX, targetY + targetH, 0)
                 .tex(tx / texW, (ty + th) / texH).endVertex();
-        buffer.pos(drawX + drawW, drawY + drawH, 0)
+        buffer.pos(targetX + targetW, targetY + targetH, 0)
                 .tex((tx + tw) / texW, (ty + th) / texH).endVertex();
-        buffer.pos(drawX + drawW, drawY, 0)
+        buffer.pos(targetX + targetW, targetY, 0)
                 .tex((tx + tw) / texW, ty / texH).endVertex();
+
+        tessellator.draw();
+    }
+
+    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
+    {
+        int a = (color >> 24)&255;
+        int r = (color >> 16)&255;
+        int g = (color >> 8)&255;
+        int b = (color >> 0)&255;
+
+        mc.renderEngine.bindTexture(tex);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+
+        buffer.pos(targetX, targetY, 0)
+                .tex(tx / texW, ty / texH)
+                .color(r,g,b,a).endVertex();
+        buffer.pos(targetX, targetY + targetH, 0)
+                .tex(tx / texW, (ty + th) / texH)
+                .color(r,g,b,a).endVertex();
+        buffer.pos(targetX + targetW, targetY + targetH, 0)
+                .tex((tx + tw) / texW, (ty + th) / texH)
+                .color(r,g,b,a).endVertex();
+        buffer.pos(targetX + targetW, targetY, 0)
+                .tex((tx + tw) / texW, ty / texH)
+                .color(r,g,b,a).endVertex();
 
         tessellator.draw();
     }
