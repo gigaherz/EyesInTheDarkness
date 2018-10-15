@@ -19,4 +19,10 @@ public class ConfigManager
 
     @Config.RangeInt(min = 1)
     public static int MaximumPackSize = 2;
+
+    @Config.Comment("If the whitelist is not used, this list contains biomes excluded from the list of all biomes.")
+    public static String[] BiomeBlacklist = new String[] { "minecraft:void" };
+
+    @Config.Comment("If not empty, this list of biomes will be used instead of all biomes. The blacklist will not take effect.")
+    public static String[] BiomeWhitelist = new String[0];
 }

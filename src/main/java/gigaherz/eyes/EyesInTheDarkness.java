@@ -1,5 +1,6 @@
 package gigaherz.eyes;
 
+import com.google.common.collect.Sets;
 import gigaherz.eyes.entity.EntityEyes;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
@@ -15,6 +16,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.world.biome.Biome;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -35,8 +37,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber
 @Mod(modid = EyesInTheDarkness.MODID, version = EyesInTheDarkness.VERSION)
@@ -102,9 +104,22 @@ public class EyesInTheDarkness
 
             if (currentWeight > 0)
             {
+                Collection<Biome> biomes = ForgeRegistries.BIOMES.getValuesCollection();
+
+                if (ConfigManager.BiomeWhitelist != null && ConfigManager.BiomeWhitelist.length > 0)
+                {
+                    Set<String> whitelist = Sets.newHashSet(ConfigManager.BiomeBlacklist);
+                    biomes = biomes.stream().filter(b -> whitelist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
+                }
+                else if (ConfigManager.BiomeBlacklist != null && ConfigManager.BiomeBlacklist.length > 0)
+                {
+                    Set<String> blacklist = Sets.newHashSet(ConfigManager.BiomeBlacklist);
+                    biomes = biomes.stream().filter(b -> !blacklist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
+                }
+
                 builder = builder.spawn(EnumCreatureType.MONSTER, currentWeight,
                         ConfigManager.MinimumPackSize, ConfigManager.MaximumPackSize,
-                        ForgeRegistries.BIOMES.getValuesCollection());
+                        biomes);
             }
         }
 
