@@ -6,23 +6,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.ai.EntityAIAvoidEntity;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.monster.AbstractSkeleton;
-import net.minecraft.entity.passive.EntityLlama;
 import net.minecraft.entity.passive.EntityOcelot;
 import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.PotionTypes;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -35,7 +27,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -88,9 +79,9 @@ public class EyesInTheDarkness
                 .tracker(80, 3, true)
                 .egg(0x000000, 0x7F0000);
 
-        if(ConfigManager.EnableNaturalSpawn)
+        if(ConfigData.EnableNaturalSpawn)
         {
-            int currentWeight = ConfigManager.OverrideWeight;
+            int currentWeight = ConfigData.OverrideWeight;
 
             if(currentWeight < 0)
             {
@@ -106,19 +97,19 @@ public class EyesInTheDarkness
             {
                 Collection<Biome> biomes = ForgeRegistries.BIOMES.getValuesCollection();
 
-                if (ConfigManager.BiomeWhitelist != null && ConfigManager.BiomeWhitelist.length > 0)
+                if (ConfigData.BiomeWhitelist != null && ConfigData.BiomeWhitelist.length > 0)
                 {
-                    Set<String> whitelist = Sets.newHashSet(ConfigManager.BiomeBlacklist);
+                    Set<String> whitelist = Sets.newHashSet(ConfigData.BiomeBlacklist);
                     biomes = biomes.stream().filter(b -> whitelist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
                 }
-                else if (ConfigManager.BiomeBlacklist != null && ConfigManager.BiomeBlacklist.length > 0)
+                else if (ConfigData.BiomeBlacklist != null && ConfigData.BiomeBlacklist.length > 0)
                 {
-                    Set<String> blacklist = Sets.newHashSet(ConfigManager.BiomeBlacklist);
+                    Set<String> blacklist = Sets.newHashSet(ConfigData.BiomeBlacklist);
                     biomes = biomes.stream().filter(b -> !blacklist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
                 }
 
                 builder = builder.spawn(EnumCreatureType.MONSTER, currentWeight,
-                        ConfigManager.MinimumPackSize, ConfigManager.MaximumPackSize,
+                        ConfigData.MinimumPackSize, ConfigData.MaximumPackSize,
                         biomes);
             }
         }

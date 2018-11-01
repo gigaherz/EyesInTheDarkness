@@ -1,10 +1,10 @@
 package gigaherz.eyes.entity;
 
+import gigaherz.eyes.ConfigData;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.InitiateJumpscare;
 import net.minecraft.block.material.EnumPushReaction;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
@@ -13,11 +13,14 @@ import net.minecraft.entity.ai.EntityAIWanderAvoidWater;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.MobEffects;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -66,7 +69,22 @@ public class EntityEyes extends EntityMob
         private boolean isPlayerLookingInMyGeneralDirection()
         {
             BlockPos position = eyes.getBlockPosEyes();
-            if (eyes.world.getLight(position, false) >= 8)
+            float blockLight = 0;
+            if (ConfigData.EyesCanAttackWhileLit)
+            {
+                if (eyes.world.provider.hasSkyLight())
+                {
+                    float skyLight = eyes.world.getLightFor(EnumSkyBlock.SKY, position)
+                            - (1 - eyes.world.provider.getSunBrightnessFactor(1.0f)) * 11;
+
+                    blockLight = Math.max(blockLight, skyLight);
+                }
+            }
+            else
+            {
+                blockLight = eyes.world.getLight(position, false);
+            }
+            if (blockLight >= 8)
                 return true;
 
             Vector3d selfPos = new Vector3d(eyes.posX, eyes.posY, eyes.posZ);
@@ -100,6 +118,11 @@ public class EntityEyes extends EntityMob
             jumpscare((EntityPlayerMP)entityIn);
         // Don't play the disappear laugh here.
         //disappear();
+        if (ConfigData.JumpscareHurtLevel > 0 && entityIn instanceof EntityLivingBase)
+        {
+            EntityLivingBase living = (EntityLivingBase)entityIn;
+            living.addPotionEffect(new PotionEffect(MobEffects.POISON,5*20, ConfigData.JumpscareHurtLevel - 1));
+        }
         damageEntity(DamageSource.GENERIC, 1);
         return true;
     }
