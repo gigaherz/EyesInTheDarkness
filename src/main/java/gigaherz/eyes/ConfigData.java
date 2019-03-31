@@ -37,6 +37,10 @@ public class ConfigData
     @Config.RequiresMcRestart()
     public static String[] BiomeWhitelist = new String[0];
 
+    @Config.Comment("Set to false to disable the jumpscare system.")
+    @Config.RangeInt(min = 0, max = 6)
+    public static boolean Jumpscare = true;
+
     @Config.Comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
     @Config.RangeInt(min = 0, max = 6)
     public static int JumpscareHurtLevel = 1;

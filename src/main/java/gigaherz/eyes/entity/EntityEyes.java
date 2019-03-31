@@ -114,16 +114,20 @@ public class EntityEyes extends EntityMob
     @Override
     public boolean attackEntityAsMob(Entity entityIn)
     {
-        if (entityIn instanceof EntityPlayerMP)
-            jumpscare((EntityPlayerMP)entityIn);
-        // Don't play the disappear laugh here.
-        //disappear();
+        boolean jumpScared = ConfigData.Jumpscare && entityIn instanceof EntityPlayerMP;
+        if (jumpScared)
+        {
+            jumpscare((EntityPlayerMP) entityIn);
+        }
+
         if (ConfigData.JumpscareHurtLevel > 0 && entityIn instanceof EntityLivingBase)
         {
-            EntityLivingBase living = (EntityLivingBase)entityIn;
-            living.addPotionEffect(new PotionEffect(MobEffects.POISON,5*20, ConfigData.JumpscareHurtLevel - 1));
+            EntityLivingBase living = (EntityLivingBase) entityIn;
+            living.addPotionEffect(new PotionEffect(MobEffects.POISON, 5 * 20, ConfigData.JumpscareHurtLevel - 1));
         }
-        damageEntity(DamageSource.GENERIC, 1);
+
+        // Don't play the disappear laugh if we initiated a jumpscare.
+        disappear(!jumpScared);
         return true;
     }
 
@@ -179,7 +183,7 @@ public class EntityEyes extends EntityMob
                         });
 
                 if (entities.size() > 0)
-                    disappear();
+                    disappear(true);
             }
         }
     }
@@ -213,15 +217,18 @@ public class EntityEyes extends EntityMob
     {
         if (entityIn instanceof EntityPlayer)
         {
-            disappear();
+            disappear(true);
         }
         //super.collideWithEntity(entityIn);
     }
 
-    private void disappear()
+    private void disappear(boolean playDeathSound)
     {
         damageEntity(DamageSource.GENERIC, 1);
-        this.playSound(getDeathSound(), this.getSoundVolume(), this.getSoundPitch());
+        if (playDeathSound)
+        {
+            this.playSound(getDeathSound(), this.getSoundVolume(), this.getSoundPitch());
+        }
     }
 
     @Override
