@@ -96,7 +96,7 @@ public class ConfigData
 
                     if (ConfigData.SERVER.BiomeWhitelist.get() != null && ConfigData.SERVER.BiomeWhitelist.get().size() > 0)
                     {
-                        Set<String> whitelist = Sets.newHashSet(ConfigData.SERVER.BiomeBlacklist.get());
+                        Set<String> whitelist = Sets.newHashSet(ConfigData.SERVER.BiomeWhitelist.get());
                         biomes = biomes.stream().filter(b -> whitelist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
                     }
                     else if (ConfigData.SERVER.BiomeBlacklist.get() != null && ConfigData.SERVER.BiomeBlacklist.get().size() > 0)
