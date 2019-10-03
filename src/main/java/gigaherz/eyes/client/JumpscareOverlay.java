@@ -1,11 +1,11 @@
 package gigaherz.eyes.client;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import gigaherz.eyes.EyesInTheDarkness;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Rectangle2d;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
@@ -13,12 +13,11 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.Rectangle;
 
-public class JumpscareOverlay extends Gui
+public class JumpscareOverlay extends AbstractGui
 {
     private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
     private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
@@ -30,13 +29,13 @@ public class JumpscareOverlay extends Gui
 
     private Minecraft mc;
 
-    private static final Rectangle[] FRAMES = {
-            new Rectangle(0,0,13,6),
-            new Rectangle(0,7,13,6),
-            new Rectangle(0,14,13,6),
-            new Rectangle(0,21,13,6),
-            new Rectangle(15,1,15,8),
-            new Rectangle(15,16,15,12),
+    private static final Rectangle2d[] FRAMES = {
+            new Rectangle2d(0,0,13,6),
+            new Rectangle2d(0,7,13,6),
+            new Rectangle2d(0,14,13,6),
+            new Rectangle2d(0,21,13,6),
+            new Rectangle2d(15,1,15,8),
+            new Rectangle2d(15,16,15,12),
     };
     private static final int ANIMATION_APPEAR = 10;
     private static final int ANIMATION_LINGER = 90;
@@ -51,7 +50,7 @@ public class JumpscareOverlay extends Gui
 
     private JumpscareOverlay()
     {
-        mc = Minecraft.getMinecraft();
+        mc = Minecraft.getInstance();
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -81,17 +80,20 @@ public class JumpscareOverlay extends Gui
         if (!visible || event.getType() != RenderGameOverlayEvent.ElementType.ALL)
             return;
 
-        int screenWidth = mc.displayWidth;
-        int screenHeight = mc.displayHeight;
+        //1.14 : if not canceled, a mini screen of the game will still render while in a jumpscare.
+        event.setCanceled(true);
+
+        int screenWidth = event.getWindow().getWidth();
+        int screenHeight = event.getWindow().getHeight();
 
         //mc.entityRenderer.setupOverlayRendering();
-        GlStateManager.clear(256);
+        GlStateManager.clear(256, false);
         GlStateManager.matrixMode(5889);
         GlStateManager.loadIdentity();
         GlStateManager.ortho(0.0D, screenWidth, screenHeight, 0.0D, 1000.0D, 3000.0D);
         GlStateManager.matrixMode(5888);
         GlStateManager.loadIdentity();
-        GlStateManager.translate(0.0F, 0.0F, -2000.0F);
+        GlStateManager.translatef(0.0F, 0.0F, -2000.0F);
 
         float time = progress + event.getPartialTicks();
         if (time >= ANIMATION_TOTAL)
@@ -143,8 +145,8 @@ public class JumpscareOverlay extends Gui
         }
         else
         {
-            drawRect(0,0, screenWidth, screenHeight, alpha << 24);
-            GlStateManager.color(1,1,1,1);
+            fill(0,0, screenWidth, screenHeight, alpha << 24);
+            GlStateManager.color4f(1,1,1,1);
             GlStateManager.enableBlend();
         }
 
@@ -154,7 +156,7 @@ public class JumpscareOverlay extends Gui
         }
 
         float scale = Float.MAX_VALUE;
-        for(Rectangle r : FRAMES)
+        for(Rectangle2d r : FRAMES)
         {
             float s = Math.min(
                     MathHelper.floor(screenWidth * 0.8 / (float)r.getWidth()),
@@ -166,7 +168,7 @@ public class JumpscareOverlay extends Gui
 
         int currentFrame = Math.min(FRAMES.length-1, MathHelper.floor(FRAMES.length * time / ANIMATION_APPEAR));
 
-        Rectangle rect = FRAMES[currentFrame];
+        Rectangle2d rect = FRAMES[currentFrame];
         int tx = rect.getX();
         int ty = rect.getY();
         int tw = rect.getWidth();
@@ -184,7 +186,7 @@ public class JumpscareOverlay extends Gui
 
     private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
     {
-        mc.renderEngine.bindTexture(tex);
+        mc.textureManager.bindTexture(tex);
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -209,7 +211,7 @@ public class JumpscareOverlay extends Gui
         int g = (color >> 8)&255;
         int b = (color >> 0)&255;
 
-        mc.renderEngine.bindTexture(tex);
+        mc.textureManager.bindTexture(tex);
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
