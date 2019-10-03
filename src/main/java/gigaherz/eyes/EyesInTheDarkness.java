@@ -99,7 +99,7 @@ public class EyesInTheDarkness
 
                 if (ConfigData.BiomeWhitelist != null && ConfigData.BiomeWhitelist.length > 0)
                 {
-                    Set<String> whitelist = Sets.newHashSet(ConfigData.BiomeBlacklist);
+                    Set<String> whitelist = Sets.newHashSet(ConfigData.BiomeWhitelist);
                     biomes = biomes.stream().filter(b -> whitelist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
                 }
                 else if (ConfigData.BiomeBlacklist != null && ConfigData.BiomeBlacklist.length > 0)
@@ -119,6 +119,8 @@ public class EyesInTheDarkness
                         .build()
         );
         LOGGER.debug("Next entity id: " + entityId);
+
+        // TODO: Evil eyes: [03:26] ProxyNeko: Add red eyes to your spooky mod and make those ones attack you if you don't look at them for more than 5 or so seconds @gigaherz xD
     }
 
     private static int getDaysUntilNextHalloween()
