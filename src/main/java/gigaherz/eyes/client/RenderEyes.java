@@ -1,43 +1,43 @@
 package gigaherz.eyes.client;
 
+import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.platform.GlStateManager;
 import gigaherz.eyes.EyesInTheDarkness;
-import gigaherz.eyes.entity.EntityEyes;
+import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.LightType;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 
-public class RenderEyes extends Render<EntityEyes>
+public class RenderEyes extends EntityRenderer<EyesEntity>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
 
-    public RenderEyes(RenderManager renderManager)
+    public RenderEyes(EntityRendererManager renderManager)
     {
         super(renderManager);
     }
 
     @Override
-    public void doRender(EntityEyes entity, double x, double y, double z, float entityYaw, float partialTicks)
+    public void doRender(EyesEntity entity, double x, double y, double z, float entityYaw, float partialTicks)
     {
         BlockPos position = entity.getBlockPosEyes();
 
-        float blockLight = entity.world.getLightFor(EnumSkyBlock.BLOCK, position);
+        float blockLight = entity.world.getLightFor(LightType.BLOCK, position);
 
-        if (entity.world.provider.hasSkyLight())
+        if (entity.world.dimension.hasSkyLight())
         {
-            float skyLight = entity.world.getLightFor(EnumSkyBlock.SKY, position)
-                    - (1 - entity.world.provider.getSunBrightnessFactor(partialTicks)) * 11;
+            float skyLight = entity.world.getLightFor(LightType.SKY, position)
+                    - (1 - entity.world.dimension.getSunBrightness(partialTicks)) * 11;
 
             blockLight = Math.max(blockLight, skyLight);
         }
@@ -50,30 +50,30 @@ public class RenderEyes extends Render<EntityEyes>
         bindTexture(getEntityTexture(entity));
 
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x, y, z);
+        GlStateManager.translated(x, y, z);
 
-        GlStateManager.translate(0, entity.getEyeHeight(), 0);
+        GlStateManager.translated(0, entity.getEyeHeight(), 0);
         //GlStateManager.rotate((float) MathHelper.clampedLerp(entity.prevRotationYaw, entity.rotationYaw, partialTicks), 0, 1, 0);
         //GlStateManager.rotate((float) MathHelper.clampedLerp(entity.prevRotationPitch, entity.rotationPitch, partialTicks), 1, 0, 0);
 
         float viewerYaw = this.renderManager.playerViewY;
         float viewerPitch = this.renderManager.playerViewX;
-        GlStateManager.rotate(-viewerYaw, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(viewerPitch, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotatef(-viewerYaw, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotatef(viewerPitch, 1.0F, 0.0F, 0.0F);
 
         GlStateManager.enableBlend();
-        GlStateManager.disableAlpha();
+        GlStateManager.disableAlphaTest();
         GlStateManager.disableLighting();
 
         GlStateManager.depthMask(false);
 
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+        GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, 240, 240);
         //GL14.glBlendColor(1,1,1, mixAlpha);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, mixAlpha);
+        GlStateManager.color4f(1.0F, 1.0F, 1.0F, mixAlpha);
 
-        Minecraft.getMinecraft().entityRenderer.setupFogColor(true);
+        Minecraft.getInstance().gameRenderer.setupFogColor(true);
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -87,7 +87,7 @@ public class RenderEyes extends Render<EntityEyes>
         float hoff = 0;
         if (entity.blinkingState)
         {
-            int half_blink = EntityEyes.BLINK_DURATION / 2;
+            int half_blink = EyesEntity.BLINK_DURATION / 2;
             if (entity.blinkProgress < half_blink)
             {
                 hoff = MathHelper.floor((entity.blinkProgress+partialTicks) * 4f / half_blink) * th;
@@ -107,12 +107,12 @@ public class RenderEyes extends Render<EntityEyes>
 
         GlStateManager.popMatrix();
 
-        Minecraft.getMinecraft().entityRenderer.setupFogColor(false);
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 0x00F0, 0x00F0);
+        Minecraft.getInstance().gameRenderer.setupFogColor(false);
+        GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, 0x00F0, 0x00F0);
 
         //GL14.glBlendColor(1,1,1, 1);
         GlStateManager.disableBlend();
-        GlStateManager.enableAlpha();
+        GlStateManager.enableAlphaTest();
         GlStateManager.enableLighting();
         GlStateManager.depthMask(true);
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -122,7 +122,7 @@ public class RenderEyes extends Render<EntityEyes>
 
     @Nullable
     @Override
-    protected ResourceLocation getEntityTexture(EntityEyes entity)
+    protected ResourceLocation getEntityTexture(EyesEntity entity)
     {
         return TEXTURE;
     }

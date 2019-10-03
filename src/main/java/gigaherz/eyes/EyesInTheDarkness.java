@@ -1,65 +1,90 @@
 package gigaherz.eyes;
 
-import com.google.common.collect.Sets;
-import gigaherz.eyes.entity.EntityEyes;
+import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.ai.EntityAIAvoidEntity;
-import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.passive.EntityOcelot;
-import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.entity.EntityClassification;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.goal.AvoidEntityGoal;
+import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
+import net.minecraft.entity.passive.OcelotEntity;
+import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.world.biome.Biome;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import net.minecraftforge.fml.common.registry.EntityEntry;
-import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.registries.ObjectHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber
-@Mod(modid = EyesInTheDarkness.MODID, version = EyesInTheDarkness.VERSION)
+@Mod(EyesInTheDarkness.MODID)
 public class EyesInTheDarkness
 {
     public static final String MODID = "eyesinthedarkness";
-    public static final String VERSION = "@VERSION@";
 
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
-    @GameRegistry.ObjectHolder(MODID + ":eyes_laugh")
+    @ObjectHolder(MODID + ":eyes_laugh")
     public static SoundEvent eyes_laugh;
 
-    @GameRegistry.ObjectHolder(MODID + ":eyes_disappear")
+    @ObjectHolder(MODID + ":eyes_disappear")
     public static SoundEvent eyes_disappear;
 
-    @GameRegistry.ObjectHolder(MODID + ":eyes_jumpscare")
+    @ObjectHolder(MODID + ":eyes_jumpscare")
     public static SoundEvent eyes_jumpscare;
 
-    private static final String CHANNEL=MODID;
-    public static SimpleNetworkWrapper channel;
+    @ObjectHolder(MODID + ":eyes")
+    public static EntityType<EyesEntity> eyes;
 
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event)
+    /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
+    /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
+    public static final EntityType<EyesEntity> eyes_entity = EntityType.Builder.create(EyesEntity::new, EntityClassification.MONSTER)
+            .setTrackingRange(80)
+            .setUpdateInterval(3)
+            .setCustomClientFactory((ent, world) -> eyes.create(world))
+            .setShouldReceiveVelocityUpdates(true)
+            .build(MODID + ":eyes");
+
+    private static final String CHANNEL=MODID;
+    private static final String PROTOCOL_VERSION = "1.0";
+
+    public static SimpleChannel channel = NetworkRegistry.ChannelBuilder
+            .named(location(CHANNEL))
+            .clientAcceptedVersions(PROTOCOL_VERSION::equals)
+            .serverAcceptedVersions(PROTOCOL_VERSION::equals)
+            .networkProtocolVersion(() -> PROTOCOL_VERSION)
+            .simpleChannel();
+
+    public EyesInTheDarkness()
     {
-        registerNetwork();
+        final ModLoadingContext modLoadingContext = ModLoadingContext.get();
+        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        modEventBus.addGenericListener(SoundEvent.class, this::registerSounds);
+        modEventBus.addGenericListener(EntityType.class, this::registerEntities);
+        modEventBus.addGenericListener(Item.class, this::registerItems);
+        modEventBus.addListener(this::commonSetup);
+
+        modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
+
+        MinecraftForge.EVENT_BUS.addListener(this::entityInit);
     }
 
-    @SubscribeEvent
-    public static void registerSounds(RegistryEvent.Register<SoundEvent> event)
+    public void registerSounds(RegistryEvent.Register<SoundEvent> event)
     {
         event.getRegistry().registerAll(
                 new SoundEvent(location("mob.eyes.laugh")).setRegistryName(location("eyes_laugh")),
@@ -68,60 +93,21 @@ public class EyesInTheDarkness
         );
     }
 
-    @SubscribeEvent
-    public static void registerEntities(RegistryEvent.Register<EntityEntry> event)
+    public void registerEntities(RegistryEvent.Register<EntityType<?>> event)
     {
-        int entityId = 1;
-
-        EntityEntryBuilder<Entity> builder = EntityEntryBuilder.create().name("eyes")
-                .id(location("eyes"), entityId++)
-                .entity(EntityEyes.class).factory(EntityEyes::new)
-                .tracker(80, 3, true)
-                .egg(0x000000, 0x7F0000);
-
-        if(ConfigData.EnableNaturalSpawn)
-        {
-            int currentWeight = ConfigData.OverrideWeight;
-
-            if(currentWeight < 0)
-            {
-                int daysBefore = getDaysUntilNextHalloween();
-
-                int weightMin = 15;
-                int weightMax = 150;
-
-                currentWeight = weightMin + ((weightMax - weightMin) * (30 - daysBefore)) / 30;
-            }
-
-            if (currentWeight > 0)
-            {
-                Collection<Biome> biomes = ForgeRegistries.BIOMES.getValuesCollection();
-
-                if (ConfigData.BiomeWhitelist != null && ConfigData.BiomeWhitelist.length > 0)
-                {
-                    Set<String> whitelist = Sets.newHashSet(ConfigData.BiomeBlacklist);
-                    biomes = biomes.stream().filter(b -> whitelist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
-                }
-                else if (ConfigData.BiomeBlacklist != null && ConfigData.BiomeBlacklist.length > 0)
-                {
-                    Set<String> blacklist = Sets.newHashSet(ConfigData.BiomeBlacklist);
-                    biomes = biomes.stream().filter(b -> !blacklist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
-                }
-
-                builder = builder.spawn(EnumCreatureType.MONSTER, currentWeight,
-                        ConfigData.MinimumPackSize, ConfigData.MaximumPackSize,
-                        biomes);
-            }
-        }
-
         event.getRegistry().registerAll(
-                builder
-                        .build()
+                eyes_entity.setRegistryName(MODID + ":eyes")
         );
-        LOGGER.debug("Next entity id: " + entityId);
     }
 
-    private static int getDaysUntilNextHalloween()
+    public void registerItems(RegistryEvent.Register<Item> event)
+    {
+        event.getRegistry().registerAll(
+                new SpawnEggItem(eyes_entity, 0x000000, 0x7F0000, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(location("eyes_spawn_egg"))
+        );
+    }
+
+    public static int getDaysUntilNextHalloween()
     {
         Calendar now = Calendar.getInstance();
         Calendar nextHalloween = new Calendar.Builder()
@@ -134,30 +120,27 @@ public class EyesInTheDarkness
         return (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
     }
 
-    private void registerNetwork()
+    public void commonSetup(FMLCommonSetupEvent event)
     {
-        channel = NetworkRegistry.INSTANCE.newSimpleChannel(CHANNEL);
-
         int messageNumber = 0;
-        channel.registerMessage(InitiateJumpscare.Handler.class, InitiateJumpscare.class, messageNumber++, Side.CLIENT);
+        channel.registerMessage(messageNumber++, InitiateJumpscare.class, InitiateJumpscare::encode, InitiateJumpscare::new, InitiateJumpscare::handle);
         LOGGER.debug("Final message number: " + messageNumber);
     }
 
     @SuppressWarnings("unchecked")
-    @SubscribeEvent
-    public static void entityInit(EntityJoinWorldEvent event)
+    public void entityInit(EntityJoinWorldEvent event)
     {
         Entity e = event.getEntity();
-        if (e instanceof EntityWolf)
+        if (e instanceof WolfEntity)
         {
-            EntityWolf wolf = (EntityWolf)e;
-            wolf.targetTasks.addTask(5,
-                    new EntityAINearestAttackableTarget(wolf, EntityEyes.class, false));
+            WolfEntity wolf = (WolfEntity)e;
+            wolf.targetSelector.addGoal(5,
+                    new NearestAttackableTargetGoal<>(wolf, EyesEntity.class, false));
         }
-        if (e instanceof EntityOcelot)
+        if (e instanceof OcelotEntity)
         {
-            EntityOcelot cat = (EntityOcelot)e;
-            cat.tasks.addTask(3, new EntityAIAvoidEntity(cat, EntityEyes.class, 6.0F, 1.0D, 1.2D));
+            OcelotEntity cat = (OcelotEntity)e;
+            cat.goalSelector.addGoal(3, new AvoidEntityGoal<>(cat, EyesEntity.class, 6.0F, 1.0D, 1.2D));
         }
     }
 

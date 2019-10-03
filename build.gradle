@@ -2,16 +2,18 @@ buildscript {
     repositories {
         jcenter()
         maven { url = "http://files.minecraftforge.net/maven" }
+        mavenCentral()
+        mavenLocal()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+apply plugin: 'maven-publish'
 
-
-version = "0.0.5"
+version = "0.1.0"
 group = "gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness"
 
@@ -21,32 +23,49 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.5.2824"
-    runDir = "run"    
-    mappings = "stable_39"
+	mappings channel: 'snapshot', version: '20191002-1.14.3'
 
-    replace "@VERSION@", project.version
-    replaceIn "EyesInTheDarkness.java"
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', ''
+            property 'forge.logging.console.level', 'debug'
+            property 'forge.logging.noansi', "false"
+
+            ideaModule "${project.name}.main"
+
+            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', ''
+            property 'forge.logging.console.level', 'debug'
+            property 'forge.logging.noansi', "false"
+
+            ideaModule "${project.name}.main"
+
+            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+        }
+    }
 }
 
 dependencies {
+	minecraft 'net.minecraftforge:forge:1.14.4-28.1.31'
 }
 
-processResources {
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-        
-    // copy everything else except the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+jar {
+    manifest {
+        attributes([
+                "Specification-Title": "eyes",
+                "Specification-Vendor": "gigaherz",
+                "Specification-Version": "1", // We are version 1 of ourselves
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" :"gigaherz",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
     }
 }
