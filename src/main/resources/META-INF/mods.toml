@@ -1,9 +1,10 @@
 modLoader="javafml"
 loaderVersion="[28,)"
 #updateJSONURL=""
-#issueTrackerURL=""
-#displayURL=""
-#logoFile="logo.png"
+issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
+displayURL="https://github.com/gigaherz/EyesInTheDarkness"
+logoFile="logo.png"
+
 [[mods]]
 modId="eyesinthedarkness"
 version="${file.jarVersion}"
@@ -13,6 +14,7 @@ authors="gigaherz"
 description='''
 Those eyes you think you saw when walking through the forest at night. No, you did not imagine them.
 '''
+
 [[dependencies.eyesinthedarkness]]
    modId="forge"
    mandatory=true
