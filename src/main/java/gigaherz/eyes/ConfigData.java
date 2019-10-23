@@ -3,10 +3,7 @@ package gigaherz.eyes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntitySpawnPlacementRegistry;
-import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -41,6 +38,9 @@ public class ConfigData
         public final ForgeConfigSpec.BooleanValue Jumpscare;
         public final ForgeConfigSpec.IntValue JumpscareHurtLevel;
         public final ForgeConfigSpec.BooleanValue EyesCanAttackWhileLit;
+        public final ForgeConfigSpec.BooleanValue EnableEyeAggressionEscalation;
+        public final ForgeConfigSpec.BooleanValue EyeAggressionDependsOnLocalDifficulty;
+        public final ForgeConfigSpec.BooleanValue EyeAggressionDependsOnLightLevel;
 
         ServerConfig(ForgeConfigSpec.Builder builder)
         {
@@ -62,22 +62,38 @@ public class ConfigData
             EyesCanAttackWhileLit = builder.comment("While set to true, the eyes entity will ignore the artificial light level and will jumpscare even if it's lit. Daylight will still disable it's AI.")
                     .define("eyesCanAttackWhileLit", true);
             builder.pop();
+            builder.push("eye_aggression");
+            EnableEyeAggressionEscalation = builder.comment("While set to true, the eyes entities will progressively get more bold, and move faster, the longer they live.")
+                    .define("enableEscalation", true);
+            EyeAggressionDependsOnLocalDifficulty = builder.comment("While set to true, the eyes entities will spawn with higher aggresion levels in higher local difficulties.")
+                    .define("localDifficulty", true);
+            EyeAggressionDependsOnLightLevel = builder.comment("While set to true, the eyes entities will have higher aggression values on lower light levels.")
+                    .define("lightLevel", true);
+            builder.pop();
         }
     }
 
     @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     private static class EventHandler
     {
+        private static Collection<Biome> biomes = null;
+        private static Biome.SpawnListEntry eyesEntry = null;
 
         @SubscribeEvent
         public static void onLoad(final ModConfig.Loading configEvent)
         {
-            if (configEvent.getConfig().getSpec() != SERVER_SPEC) return;
+            if (configEvent.getConfig().getSpec() != SERVER_SPEC)
+                return;
+
+            // Empty all the spawn entries, in case the biome list changed.
+            if(eyesEntry != null)
+            {
+                biomes.stream().map(biome -> biome.getSpawns(EntityClassification.MONSTER)).forEach(list -> list.remove(eyesEntry));
+                biomes = Collections.emptyList();
+            }
+
             if(ConfigData.SERVER.EnableNaturalSpawn.get())
             {
-
-                EntitySpawnPlacementRegistry.register(EyesInTheDarkness.eyes_entity, EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MonsterEntity::func_223325_c);
-
                 int currentWeight = ConfigData.SERVER.OverrideWeight.get();
 
                 if(currentWeight < 0)
@@ -92,7 +108,7 @@ public class ConfigData
 
                 if (currentWeight > 0)
                 {
-                    Collection<Biome> biomes = ForgeRegistries.BIOMES.getValues();
+                    biomes = ForgeRegistries.BIOMES.getValues();
 
                     if (ConfigData.SERVER.BiomeWhitelist.get() != null && ConfigData.SERVER.BiomeWhitelist.get().size() > 0)
                     {
@@ -104,9 +120,10 @@ public class ConfigData
                         Set<String> blacklist = Sets.newHashSet(ConfigData.SERVER.BiomeBlacklist.get());
                         biomes = biomes.stream().filter(b -> !blacklist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
                     }
-                    final Biome.SpawnListEntry entry = new Biome.SpawnListEntry(EyesInTheDarkness.eyes_entity, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get());
-                    biomes.stream().map(biome -> biome.getSpawns(EntityClassification.MONSTER)).forEach(list -> list.add(entry));
 
+                    eyesEntry = new Biome.SpawnListEntry(EyesInTheDarkness.eyes_entity, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get());
+
+                    biomes.stream().map(biome -> biome.getSpawns(EntityClassification.MONSTER)).forEach(list -> list.add(eyesEntry));
                 }
             }
         }

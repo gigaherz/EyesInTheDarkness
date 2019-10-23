@@ -3,9 +3,11 @@ package gigaherz.eyes;
 import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
+import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
+import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.passive.OcelotEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.item.Item;
@@ -13,6 +15,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -98,6 +101,8 @@ public class EyesInTheDarkness
         event.getRegistry().registerAll(
                 eyes_entity.setRegistryName(MODID + ":eyes")
         );
+
+        EntitySpawnPlacementRegistry.register(EyesInTheDarkness.eyes_entity, EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MonsterEntity::func_223325_c);
     }
 
     public void registerItems(RegistryEvent.Register<Item> event)
@@ -123,7 +128,7 @@ public class EyesInTheDarkness
     public void commonSetup(FMLCommonSetupEvent event)
     {
         int messageNumber = 0;
-        channel.registerMessage(messageNumber++, InitiateJumpscare.class, InitiateJumpscare::encode, InitiateJumpscare::new, InitiateJumpscare::handle);
+        channel.registerMessage(messageNumber++, InitiateJumpscarePacket.class, InitiateJumpscarePacket::encode, InitiateJumpscarePacket::new, InitiateJumpscarePacket::handle);
         LOGGER.debug("Final message number: " + messageNumber);
     }
 

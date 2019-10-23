@@ -18,11 +18,11 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 
-public class RenderEyes extends EntityRenderer<EyesEntity>
+public class EyesRenderer extends EntityRenderer<EyesEntity>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
 
-    public RenderEyes(EntityRendererManager renderManager)
+    public EyesRenderer(EntityRendererManager renderManager)
     {
         super(renderManager);
     }
@@ -71,7 +71,12 @@ public class RenderEyes extends EntityRenderer<EyesEntity>
 
         GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, 240, 240);
         //GL14.glBlendColor(1,1,1, mixAlpha);
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, mixAlpha);
+
+        float aggro = entity.getAggroLevel();
+
+        float aggroColorAdjust = 1 - MathHelper.clamp(aggro, 0, 1);
+
+        GlStateManager.color4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha);
 
         Minecraft.getInstance().gameRenderer.setupFogColor(true);
 

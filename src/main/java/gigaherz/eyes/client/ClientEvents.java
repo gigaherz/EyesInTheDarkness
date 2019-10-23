@@ -14,7 +14,7 @@ public class ClientEvents
     @SubscribeEvent
     public static void registerEntityRenders(final FMLClientSetupEvent event)
     {
-        RenderingRegistry.registerEntityRenderingHandler(EyesEntity.class, RenderEyes::new);
+        RenderingRegistry.registerEntityRenderingHandler(EyesEntity.class, EyesRenderer::new);
     }
 
     /* *-/
