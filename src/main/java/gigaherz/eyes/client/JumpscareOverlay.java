@@ -1,6 +1,6 @@
 package gigaherz.eyes.client;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import gigaherz.eyes.EyesInTheDarkness;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
@@ -86,15 +86,6 @@ public class JumpscareOverlay extends AbstractGui
         int screenWidth = event.getWindow().getWidth();
         int screenHeight = event.getWindow().getHeight();
 
-        //mc.entityRenderer.setupOverlayRendering();
-        GlStateManager.clear(256, false);
-        GlStateManager.matrixMode(5889);
-        GlStateManager.loadIdentity();
-        GlStateManager.ortho(0.0D, screenWidth, screenHeight, 0.0D, 1000.0D, 3000.0D);
-        GlStateManager.matrixMode(5888);
-        GlStateManager.loadIdentity();
-        GlStateManager.translatef(0.0F, 0.0F, -2000.0F);
-
         float time = progress + event.getPartialTicks();
         if (time >= ANIMATION_TOTAL)
         {
@@ -102,6 +93,15 @@ public class JumpscareOverlay extends AbstractGui
             progress = 0;
             return;
         }
+
+        RenderSystem.pushMatrix();
+        RenderSystem.clear(256, false);
+        RenderSystem.matrixMode(5889);
+        RenderSystem.loadIdentity();
+        RenderSystem.ortho(0.0D, screenWidth, screenHeight, 0.0D, 1000.0D, 3000.0D);
+        RenderSystem.matrixMode(5888);
+        RenderSystem.loadIdentity();
+        RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
 
         float darkening = MathHelper.clamp(
                 Math.min(
@@ -140,48 +140,48 @@ public class JumpscareOverlay extends AbstractGui
             int drawH = screenHeight;
             int drawW = MathHelper.floor(texW * scale1);
             int drawX = (screenWidth-drawW)/2;
-            GlStateManager.enableBlend();
+            RenderSystem.enableBlend();
             drawScaledCustomTexture(TEXTURE_FLASH, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
         }
         else
         {
             fill(0,0, screenWidth, screenHeight, alpha << 24);
-            GlStateManager.color4f(1,1,1,1);
-            GlStateManager.enableBlend();
+            RenderSystem.color4f(1,1,1,1);
+            RenderSystem.enableBlend();
         }
 
-        if(blinkstate == 1)
+        if(blinkstate != 1)
         {
-            return;
+            float scale = Float.MAX_VALUE;
+            for (Rectangle2d r : FRAMES)
+            {
+                float s = Math.min(
+                        MathHelper.floor(screenWidth * 0.8 / (float) r.getWidth()),
+                        MathHelper.floor(screenHeight * 0.8 / (float) r.getHeight()));
+                scale = Math.min(scale, s);
+            }
+
+            scale = Math.min(1, (1 + time) / (1 + ANIMATION_APPEAR)) * scale;
+
+            int currentFrame = Math.min(FRAMES.length - 1, MathHelper.floor(FRAMES.length * time / ANIMATION_APPEAR));
+
+            Rectangle2d rect = FRAMES[currentFrame];
+            int tx = rect.getX();
+            int ty = rect.getY();
+            int tw = rect.getWidth();
+            int th = rect.getHeight();
+
+            float drawW = (tw) * scale;
+            float drawH = (th) * scale;
+            float drawX = ((screenWidth - drawW) / 2.0f);
+            float drawY = ((screenHeight - drawH) / 2.0f);
+
+            float texW = 32;
+            float texH = 32;
+            drawScaledCustomTexture(TEXTURE_EYES, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
         }
 
-        float scale = Float.MAX_VALUE;
-        for(Rectangle2d r : FRAMES)
-        {
-            float s = Math.min(
-                    MathHelper.floor(screenWidth * 0.8 / (float)r.getWidth()),
-                    MathHelper.floor(screenHeight * 0.8 / (float)r.getHeight()));
-            scale = Math.min(scale, s);
-        }
-
-        scale = Math.min(1, (1+time)/(1+ ANIMATION_APPEAR)) * scale;
-
-        int currentFrame = Math.min(FRAMES.length-1, MathHelper.floor(FRAMES.length * time / ANIMATION_APPEAR));
-
-        Rectangle2d rect = FRAMES[currentFrame];
-        int tx = rect.getX();
-        int ty = rect.getY();
-        int tw = rect.getWidth();
-        int th = rect.getHeight();
-
-        float drawW = (tw) * scale;
-        float drawH = (th) * scale;
-        float drawX = ((screenWidth - drawW)/2.0f);
-        float drawY = ((screenHeight - drawH)/2.0f);
-
-        float texW = 32;
-        float texH = 32;
-        drawScaledCustomTexture(TEXTURE_EYES, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
+        RenderSystem.popMatrix();
     }
 
     private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)

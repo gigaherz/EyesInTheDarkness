@@ -4,6 +4,7 @@ import gigaherz.eyes.ConfigData;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.InitiateJumpscarePacket;
 import net.minecraft.block.material.PushReaction;
+import net.minecraft.client.renderer.Vector3d;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
@@ -35,7 +36,6 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
-import javax.vecmath.Vector3d;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
@@ -139,7 +139,7 @@ public class EyesEntity extends MonsterEntity
 
     public void jumpscare(ServerPlayerEntity player)
     {
-        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.posX, this.posY, this.posZ), player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getPosX(), this.getPosY(), this.getPosZ()), player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class EyesEntity extends MonsterEntity
                         return false;
 
                     Vec3d vec3d = player.getLook(1.0F).normalize();
-                    Vec3d vec3d1 = new Vec3d(this.posX - player.posX, this.getBoundingBox().minY + (double) this.getEyeHeight() - (player.posY + (double) player.getEyeHeight()), this.posZ - player.posZ);
+                    Vec3d vec3d1 = new Vec3d(this.getPosX() - player.getPosX(), this.getBoundingBox().minY + (double) this.getEyeHeight() - (player.getPosY() + (double) player.getEyeHeight()), this.getPosZ() - player.getPosZ());
                     double d0 = vec3d1.length();
                     vec3d1 = vec3d1.normalize();
                     double d1 = vec3d.dotProduct(vec3d1);
@@ -299,7 +299,7 @@ public class EyesEntity extends MonsterEntity
      */
     public BlockPos getBlockPosEyes()
     {
-        return new BlockPos(this.posX, this.posY + getEyeHeight(), this.posZ);
+        return new BlockPos(this.getPosX(), this.getPosY() + getEyeHeight(), this.getPosZ());
     }
 
     @Override
@@ -308,6 +308,15 @@ public class EyesEntity extends MonsterEntity
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
+    public float getSunBrightness() {
+        float f = world.getCelestialAngle(1);
+        float f1 = 1.0F - (MathHelper.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.2F);
+        f1 = MathHelper.clamp(f1, 0.0F, 1.0F);
+        f1 = 1.0F - f1;
+        f1 = (float)((double)f1 * (1.0D - (double)(world.getRainStrength(1) * 5.0F) / 16.0D));
+        f1 = (float)((double)f1 * (1.0D - (double)(world.getThunderStrength(1) * 5.0F) / 16.0D));
+        return f1 * 0.8F + 0.2F;
+    }
 
     private float getLightLevel(boolean excludeDaylight)
     {
@@ -318,7 +327,14 @@ public class EyesEntity extends MonsterEntity
             if (world.dimension.hasSkyLight())
             {
                 float skyLight = world.getLightFor(LightType.SKY, position)
-                        - (1 - world.dimension.getSunBrightness(1.0f)) * 11;
+                        - (1 - getSunBrightness()) * 11;
+                float skyLight1 = world.getLightFor(LightType.SKY, position)
+                        - world.getSkylightSubtracted();
+
+                if (skyLight != skyLight1)
+                {
+                    skyLight = skyLight;
+                }
 
                 blockLight = Math.max(blockLight, skyLight);
             }
@@ -374,7 +390,7 @@ public class EyesEntity extends MonsterEntity
             if (isPlayerLookingInMyGeneralDirection())
                 return false;
 
-            this.path = this.attacker.getNavigator().getPathToEntityLiving(targetPlayer, 0);
+            this.path = this.attacker.getNavigator().getPathToEntity(targetPlayer, 0);
             return this.path != null || isWithinRange(targetPlayer);
         }
 
@@ -407,7 +423,7 @@ public class EyesEntity extends MonsterEntity
 
         private boolean isWithinRange(LivingEntity targetPlayer)
         {
-            return this.getAttackReachSqr(targetPlayer) >= this.attacker.getDistanceSq(targetPlayer.posX, targetPlayer.getBoundingBox().minY, targetPlayer.posZ);
+            return this.getAttackReachSqr(targetPlayer) >= this.attacker.getDistanceSq(targetPlayer.getPosX(), targetPlayer.getBoundingBox().minY, targetPlayer.getPosZ());
         }
 
         private boolean isPlayerLookingInMyGeneralDirection()
@@ -415,19 +431,19 @@ public class EyesEntity extends MonsterEntity
             if (eyes.getIsDormant())
                 return false;
 
-            Vector3d selfPos = new Vector3d(eyes.posX, eyes.posY, eyes.posZ);
+            Vec3d selfPos = eyes.getPositionVec();
             LivingEntity target = eyes.getAttackTarget();
             if (target == null)
                 return false;
-            Vector3d playerPos = new Vector3d(target.posX, target.posY, target.posZ);
+            Vec3d playerPos = target.getPositionVec();
             Vec3d lookVec = target.getLookVec();
-            Vector3d playerLook = new Vector3d(lookVec.x, lookVec.y, lookVec.z);
+            Vec3d playerLook = new Vec3d(lookVec.x, lookVec.y, lookVec.z);
             playerLook.normalize();
 
-            playerPos.sub(selfPos);
+            playerPos.subtract(selfPos);
             playerPos.normalize();
 
-            return playerLook.dot(playerPos) < 0;
+            return playerLook.dotProduct(playerPos) < 0;
         }
 
         /**
@@ -452,7 +468,7 @@ public class EyesEntity extends MonsterEntity
         {
             LivingEntity targetPlayer = this.attacker.getAttackTarget();
             this.attacker.getLookController().setLookPositionWithEntity(targetPlayer, 30.0F, 30.0F);
-            double distanceSquared = this.attacker.getDistanceSq(targetPlayer.posX, targetPlayer.getBoundingBox().minY, targetPlayer.posZ);
+            double distanceSquared = this.attacker.getDistanceSq(targetPlayer.getPosX(), targetPlayer.getBoundingBox().minY, targetPlayer.getPosZ());
             --this.delayCounter;
             if (this.attacker.getEntitySenses().canSee(targetPlayer)
                     && this.delayCounter <= 0
@@ -460,9 +476,9 @@ public class EyesEntity extends MonsterEntity
                         || targetPlayer.getDistanceSq(this.targetX, this.targetY, this.targetZ) >= 1.0D
                         || this.attacker.getRNG().nextFloat() < 0.05F))
             {
-                this.targetX = targetPlayer.posX;
+                this.targetX = targetPlayer.getPosX();
                 this.targetY = targetPlayer.getBoundingBox().minY;
-                this.targetZ = targetPlayer.posZ;
+                this.targetZ = targetPlayer.getPosZ();
                 this.delayCounter = 4 + this.attacker.getRNG().nextInt(7);
 
                 if (distanceSquared > 1024.0D)
