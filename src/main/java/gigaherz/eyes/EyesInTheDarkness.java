@@ -2,12 +2,10 @@ package gigaherz.eyes;
 
 import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
-import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.passive.OcelotEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.item.Item;
@@ -17,6 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -32,7 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Calendar;
 
 @Mod(EyesInTheDarkness.MODID)
 public class EyesInTheDarkness
@@ -50,21 +49,17 @@ public class EyesInTheDarkness
     @ObjectHolder(MODID + ":eyes_jumpscare")
     public static SoundEvent eyes_jumpscare;
 
-    @ObjectHolder(MODID + ":eyes")
-    public static EntityType<EyesEntity> eyes;
-
     /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
     /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
-    public static final EntityType<EyesEntity> eyes_entity = EntityType.Builder.create(EyesEntity::new, EntityClassification.MONSTER)
+    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.create(EyesEntity::new, EyesEntity.CLASSIFICATION)
             .setTrackingRange(80)
             .setUpdateInterval(3)
-            .setCustomClientFactory((ent, world) -> eyes.create(world))
+            .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
             .setShouldReceiveVelocityUpdates(true)
-            .build(MODID + ":eyes");
+            .build(MODID + ":eyes"));
 
-    private static final String CHANNEL=MODID;
+    private static final String CHANNEL="main";
     private static final String PROTOCOL_VERSION = "1.0";
-
     public static SimpleChannel channel = NetworkRegistry.ChannelBuilder
             .named(location(CHANNEL))
             .clientAcceptedVersions(PROTOCOL_VERSION::equals)
@@ -99,16 +94,20 @@ public class EyesInTheDarkness
     public void registerEntities(RegistryEvent.Register<EntityType<?>> event)
     {
         event.getRegistry().registerAll(
-                eyes_entity.setRegistryName(MODID + ":eyes")
+                eyesInit.get().setRegistryName(MODID + ":eyes")
         );
 
-        EntitySpawnPlacementRegistry.register(EyesInTheDarkness.eyes_entity, EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MonsterEntity::func_223325_c);
+        EntitySpawnPlacementRegistry.register(
+                eyesInit.get(),
+                EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ConfigData::canEyesSpawnAt);
     }
 
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         event.getRegistry().registerAll(
-                new SpawnEggItem(eyes_entity, 0x000000, 0x7F0000, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(location("eyes_spawn_egg"))
+                new SpawnEggItem(eyesInit.get(), 0x000000, 0x7F0000, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(location("eyes_spawn_egg"))
         );
     }
 

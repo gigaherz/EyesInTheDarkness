@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.ResourceLocation;
@@ -24,7 +25,7 @@ import javax.annotation.Nullable;
 public class EyesRenderer extends EntityRenderer<EyesEntity>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
-    private final RenderType renderType = RenderType.entityTranslucent(TEXTURE);
+    private final RenderType renderType = RenderType.getEntityTranslucent(TEXTURE);
 
     public EyesRenderer(EntityRendererManager renderManager)
     {
@@ -59,7 +60,6 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
 
         float aggroColorAdjust = 1 - MathHelper.clamp(aggro, 0, 1);
 
-        IVertexBuilder buffer = bufferIn.getBuffer(renderType);
 
         final float w = .25f;
         final float h = w * 5 / 13f;
@@ -68,32 +68,36 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         final float th = 5 / 32f;
         float hoff = getBlinkState(entity, partialTicks, th);
 
-        buffer.pos(matrixStack.getLast().getPositionMatrix(), -w, -h, 0)
+        int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
+        int packedLightmapCoords = 0x00F000F0;
+        IVertexBuilder buffer = bufferIn.getBuffer(renderType);
+        Matrix4f matrix = matrixStack.getLast().getMatrix();
+        buffer.pos(matrix, -w, -h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(0, hoff + th)
-                .overlay(0,0)
-                .lightmap(0x00F000F0)
+                .overlay(packedOverlayCoords)
+                .lightmap(packedLightmapCoords)
                 .normal(0,0,1)
                 .endVertex();
-        buffer.pos(matrixStack.getLast().getPositionMatrix(), -w, h, 0)
+        buffer.pos(matrix, -w, h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(0, hoff)
-                .overlay(0,0)
-                .lightmap(0x00F000F0)
+                .overlay(packedOverlayCoords)
+                .lightmap(packedLightmapCoords)
                 .normal(0,0,1)
                 .endVertex();
-        buffer.pos(matrixStack.getLast().getPositionMatrix(), w, h, 0)
+        buffer.pos(matrix, w, h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(tw, hoff)
-                .overlay(0,0)
-                .lightmap(0x00F000F0)
+                .overlay(packedOverlayCoords)
+                .lightmap(packedLightmapCoords)
                 .normal(0,0,1)
                 .endVertex();
-        buffer.pos(matrixStack.getLast().getPositionMatrix(), w, -h, 0)
+        buffer.pos(matrix, w, -h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(tw, hoff + th)
-                .overlay(0,0)
-                .lightmap(0x00F000F0)
+                .overlay(packedOverlayCoords)
+                .lightmap(packedLightmapCoords)
                 .normal(0,0,1)
                 .endVertex();
 

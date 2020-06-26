@@ -1,9 +1,16 @@
 package gigaherz.eyes;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import net.minecraft.entity.EntityClassification;
+import gigaherz.eyes.entity.EyesEntity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.biome.Biome;
+import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -11,12 +18,15 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ConfigData
 {
-
     public static final ServerConfig SERVER;
     public static final ForgeConfigSpec SERVER_SPEC;
 
@@ -33,8 +43,7 @@ public class ConfigData
         public final ForgeConfigSpec.IntValue OverrideWeight;
         public final ForgeConfigSpec.IntValue MinimumPackSize;
         public final ForgeConfigSpec.IntValue MaximumPackSize;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> BiomeWhitelist;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> BiomeBlacklist;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> BiomeRules;
         public final ForgeConfigSpec.BooleanValue Jumpscare;
         public final ForgeConfigSpec.IntValue JumpscareHurtLevel;
         public final ForgeConfigSpec.BooleanValue EyesCanAttackWhileLit;
@@ -51,10 +60,21 @@ public class ConfigData
                     .defineInRange("overrideWeight", -1, -1, Integer.MAX_VALUE);
             MinimumPackSize = builder.defineInRange("minimumPackSize", 1, 1, Integer.MAX_VALUE);
             MaximumPackSize = builder.defineInRange("maximumPackSize", 2, 1, Integer.MAX_VALUE);
-            BiomeWhitelist = builder.comment("If not empty, this list of biomes will be used instead of all biomes. The blacklist will not take effect.")
-                    .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
-            BiomeBlacklist = builder.comment("If the whitelist is not used, this list contains biomes excluded from the list of all biomes.")
-                    .defineList("blacklist", Lists.newArrayList("minecraft:void"), o -> o instanceof String);
+            BiomeRules = builder.comment(
+                    "Specifies rules for accepting or rejecting biomes.",
+                    "The rules are scanned one by one until a rule matches, This means the first rule to match takes precedence over any other subsequent rule, so more specific rules should go first.",
+                    "Rules:",
+                    "  \"biome:name\"    -- ALLOWS spawning in the given biome.",
+                    "  \"!biome:name\"   -- DISALLOWS spawning in the given biome.",
+                    "  \"#biome_label\"  -- ALLOWS spawning in the given biome dictionary label.",
+                    "  \"!#biome_label\" -- DISALLOWS spawning in the given biome dictionary label.",
+                    "  \"!*\"            -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
+                    "Examples:",
+                    "  To disable spawning in the end: [ \"!#END\" ]",
+                    "  To disable spawning in the nether biome: [ \"!minecraft:nether\" ]",
+                    "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#FOREST\" ]",
+                    "NOTE: VOID type biomes are disabled by default, internally. You can explicitly enable those by adding \"#VOID\" to the rules, but this is not recommended."
+            ).defineList("biomeRules", Lists.newArrayList(), o -> o instanceof String);
             Jumpscare = builder.comment("Set to false to disable the jumpscare system.")
                     .define("jumpscare", true);
             JumpscareHurtLevel = builder.comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
@@ -80,16 +100,18 @@ public class ConfigData
         private static Biome.SpawnListEntry eyesEntry = null;
 
         @SubscribeEvent
-        public static void onLoad(final ModConfig.Loading configEvent)
+        public static void onLoad(final ModConfig.ModConfigEvent configEvent)
         {
-            if (configEvent.getConfig().getSpec() != SERVER_SPEC)
+            ModConfig config = configEvent.getConfig();
+            if (config.getSpec() != SERVER_SPEC)
                 return;
 
             // Empty all the spawn entries, in case the biome list changed.
             if(eyesEntry != null)
             {
-                biomes.stream().map(biome -> biome.getSpawns(EntityClassification.MONSTER)).forEach(list -> list.remove(eyesEntry));
+                biomes.stream().map(biome -> biome.getSpawns(EyesEntity.CLASSIFICATION)).forEach(list -> list.remove(eyesEntry));
                 biomes = Collections.emptyList();
+                eyesEntry = null;
             }
 
             if(ConfigData.SERVER.EnableNaturalSpawn.get())
@@ -110,22 +132,114 @@ public class ConfigData
                 {
                     biomes = ForgeRegistries.BIOMES.getValues();
 
-                    if (ConfigData.SERVER.BiomeWhitelist.get() != null && ConfigData.SERVER.BiomeWhitelist.get().size() > 0)
-                    {
-                        Set<String> whitelist = Sets.newHashSet(ConfigData.SERVER.BiomeWhitelist.get());
-                        biomes = biomes.stream().filter(b -> whitelist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
-                    }
-                    else if (ConfigData.SERVER.BiomeBlacklist.get() != null && ConfigData.SERVER.BiomeBlacklist.get().size() > 0)
-                    {
-                        Set<String> blacklist = Sets.newHashSet(ConfigData.SERVER.BiomeBlacklist.get());
-                        biomes = biomes.stream().filter(b -> !blacklist.contains(b.getRegistryName().toString())).collect(Collectors.toList());
-                    }
+                    List<? extends String> biomeRules = orDefault(ConfigData.SERVER.BiomeRules.get(), Collections::emptyList);
 
-                    eyesEntry = new Biome.SpawnListEntry(EyesInTheDarkness.eyes_entity, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get());
+                    List<BiomeRule> rules = Lists.newArrayList();
+                    biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
+                    rules.add(BiomeRule.disallowLabel("VOID")); // Added at the end to make sure it's lowest priority.
 
-                    biomes.stream().map(biome -> biome.getSpawns(EntityClassification.MONSTER)).forEach(list -> list.add(eyesEntry));
+                    biomes = biomes.stream().filter(b -> {
+                        for(BiomeRule r : rules)
+                        {
+                            if (r.test(b))
+                                return r.allow;
+                        }
+                        return true;
+                    }).collect(Collectors.toList());
+
+                    if (biomes.size() > 0)
+                    {
+                        eyesEntry = new Biome.SpawnListEntry(EyesEntity.TYPE, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get());
+
+                        biomes.stream().map(biome -> biome.getSpawns(EyesEntity.CLASSIFICATION)).forEach(list -> list.add(eyesEntry));
+                    }
                 }
             }
         }
+
+        @Nonnull
+        private static <T> T orDefault(@Nullable T value, @Nonnull Supplier<T> defaultSupplier)
+        {
+            if (value != null)
+                return value;
+            return defaultSupplier.get();
+        }
+
+        private static class BiomeRule implements Predicate<Biome>
+        {
+            public final boolean allow;
+            public final boolean isLabel;
+            public final String labelName;
+            public final ResourceLocation registryName;
+            public final BiomeDictionary.Type labelType;
+
+            private BiomeRule(boolean allow, boolean isLabel, String labelName)
+            {
+                this.allow = allow;
+                this.isLabel = isLabel;
+                this.labelName = labelName;
+                if (labelName == null)
+                {
+                    this.registryName = null;
+                    this.labelType = null;
+                }
+                else if(isLabel)
+                {
+                    this.registryName = null;
+                    this.labelType = BiomeDictionary.Type.getType(labelName);
+                }
+                else
+                {
+                    this.registryName = new ResourceLocation(labelName);
+                    this.labelType = null;
+                }
+            }
+
+            @Override
+            public boolean test(Biome biome)
+            {
+                if (labelName == null)
+                    return true;
+                if (isLabel)
+                {
+                    return BiomeDictionary.hasType(biome, labelType);
+                }
+                else
+                {
+                    return registryName.equals(biome.getRegistryName());
+                }
+            }
+
+            public static BiomeRule parse(String rule)
+            {
+                boolean allow = true;
+                if (rule.startsWith("!"))
+                {
+                    allow = false;
+                    rule = rule.substring(1);
+                }
+                boolean isLabel = false;
+                if (rule.startsWith("#"))
+                {
+                    isLabel = true;
+                    rule = rule.substring(1);
+                }
+                else if (rule.equals("*"))
+                {
+                    rule = null;
+                }
+                return new BiomeRule(allow, isLabel, rule);
+            }
+
+            public static BiomeRule disallowLabel(String label)
+            {
+                return new BiomeRule(false, true, label);
+            }
+        }
+    }
+
+    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, IWorld world, SpawnReason reason, BlockPos pos, Random random)
+    {
+        return MonsterEntity.canMonsterSpawnInLight(entityType, world, reason, pos, random);
     }
 }

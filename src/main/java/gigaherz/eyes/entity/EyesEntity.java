@@ -34,6 +34,7 @@ import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -43,6 +44,12 @@ import java.util.function.DoubleSupplier;
 
 public class EyesEntity extends MonsterEntity
 {
+    // Needed to keep a dedicated spawn cap for the eyes.
+    public static final EntityClassification CLASSIFICATION = EntityClassification.create("EITD_EYES", "eitd_eyes", 15, false, false);
+
+    @ObjectHolder("eyesinthedarkness:eyes")
+    public static EntityType<EyesEntity> TYPE = null;
+
     private static final DataParameter<Boolean> IS_DORMANT = EntityDataManager.createKey(EyesEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Float> AGGRO = EntityDataManager.createKey(EyesEntity.class, DataSerializers.FLOAT);
 

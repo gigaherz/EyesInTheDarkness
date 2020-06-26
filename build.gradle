@@ -4,19 +4,16 @@ buildscript {
         maven { url = "http://files.minecraftforge.net/maven" }
         mavenCentral()
         mavenLocal()
-        maven {
-            url 'http://dogforce-games.com/maven'
-        }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.165-run-configs-rework', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'maven-publish'
 
-version = "0.3.0"
+version = "0.4.0"
 group = "gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness-1.15.2"
 
@@ -26,7 +23,7 @@ compileJava {
 }
 
 minecraft {
-	mappings channel: 'snapshot', version: '20200131-1.15.1'
+	mappings channel: 'snapshot', version: '20200530-1.15.1'
 
     accessTransformer = file('dummy/accesstransformer.cfg')
 
@@ -58,7 +55,7 @@ minecraft {
 }
 
 dependencies {
-	minecraft 'net.minecraftforge:forge:1.15.2-31.0.14'
+	minecraft 'net.minecraftforge:forge:1.15.2-31.2.5'
 }
 
 jar {
