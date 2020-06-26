@@ -1,24 +1,19 @@
 package gigaherz.eyes.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GLX;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.world.LightType;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +34,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
 
         float blockLight = entity.world.getLightFor(LightType.BLOCK, position);
 
-        if (entity.world.dimension.hasSkyLight())
+        if (entity.world.func_230315_m_().hasSkyLight())
         {
             float skyLight = entity.world.getLightFor(LightType.SKY, position)
                     - (1 - ((ClientWorld)entity.world).getSunBrightness(partialTicks)) * 11;

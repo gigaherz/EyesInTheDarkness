@@ -1,9 +1,8 @@
 buildscript {
     repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
         mavenCentral()
-        mavenLocal()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
@@ -15,17 +14,16 @@ apply plugin: 'maven-publish'
 
 version = "0.4.0"
 group = "gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "EyesInTheDarkness-1.15.2"
+archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
+project.afterEvaluate {
+    archivesBaseName = "EyesInTheDarkness-${project.MC_VERSION}"
 }
 
-minecraft {
-	mappings channel: 'snapshot', version: '20200530-1.15.1'
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
-    accessTransformer = file('dummy/accesstransformer.cfg')
+minecraft {
+    mappings channel: 'snapshot', version: '20200514-1.16'
 
     runs {
         client {
@@ -37,7 +35,11 @@ minecraft {
 
             ideaModule "${project.name}.main"
 
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+            mods {
+                thismod {
+                    source sourceSets.main
+                }
+            }
         }
 
         server {
@@ -49,13 +51,17 @@ minecraft {
 
             ideaModule "${project.name}.main"
 
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+            mods {
+                thismod {
+                    source sourceSets.main
+                }
+            }
         }
     }
 }
 
 dependencies {
-	minecraft 'net.minecraftforge:forge:1.15.2-31.2.5'
+    minecraft 'net.minecraftforge:forge:1.16.1-32.0.17'
 }
 
 jar {

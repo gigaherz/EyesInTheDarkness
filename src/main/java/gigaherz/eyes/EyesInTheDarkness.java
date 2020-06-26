@@ -4,6 +4,7 @@ import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.passive.OcelotEntity;
@@ -129,6 +130,8 @@ public class EyesInTheDarkness
         int messageNumber = 0;
         channel.registerMessage(messageNumber++, InitiateJumpscarePacket.class, InitiateJumpscarePacket::encode, InitiateJumpscarePacket::new, InitiateJumpscarePacket::handle);
         LOGGER.debug("Final message number: " + messageNumber);
+
+        GlobalEntityTypeAttributes.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().func_233813_a_());
     }
 
     @SuppressWarnings("unchecked")

@@ -1,5 +1,6 @@
 package gigaherz.eyes.client;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import gigaherz.eyes.EyesInTheDarkness;
 import net.minecraft.client.Minecraft;
@@ -145,7 +146,9 @@ public class JumpscareOverlay extends AbstractGui
         }
         else
         {
-            fill(0,0, screenWidth, screenHeight, alpha << 24);
+            // FIXME
+            MatrixStack temp = new MatrixStack();
+            func_238467_a_(temp, 0,0, screenWidth, screenHeight, alpha << 24);
             RenderSystem.color4f(1,1,1,1);
             RenderSystem.enableBlend();
         }

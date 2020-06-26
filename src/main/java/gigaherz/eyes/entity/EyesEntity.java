@@ -4,8 +4,9 @@ import gigaherz.eyes.ConfigData;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.InitiateJumpscarePacket;
 import net.minecraft.block.material.PushReaction;
-import net.minecraft.client.renderer.Vector3d;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
@@ -27,7 +28,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.LightType;
@@ -45,7 +46,7 @@ import java.util.function.DoubleSupplier;
 public class EyesEntity extends MonsterEntity
 {
     // Needed to keep a dedicated spawn cap for the eyes.
-    public static final EntityClassification CLASSIFICATION = EntityClassification.create("EITD_EYES", "eitd_eyes", 15, false, false);
+    public static final EntityClassification CLASSIFICATION = EntityClassification.create("EITD_EYES", "eitd_eyes", 15, false, false, 64);
 
     @ObjectHolder("eyesinthedarkness:eyes")
     public static EntityType<EyesEntity> TYPE = null;
@@ -67,6 +68,12 @@ public class EyesEntity extends MonsterEntity
     public EyesEntity(EntityType<? extends EyesEntity> type, World worldIn)
     {
         super(type, worldIn);
+    }
+
+    public static AttributeModifierMap.MutableAttribute prepareAttributes()
+    {
+        return MonsterEntity.func_234295_eP_()
+                .func_233815_a_(Attributes.field_233818_a_, 1.0D);
     }
 
     @Override
@@ -184,7 +191,7 @@ public class EyesEntity extends MonsterEntity
             return;
 
         float maxWatchDistance = 16;
-        Vec3d eyes = getEyePosition(1);
+        Vector3d eyes = getEyePosition(1);
         List<PlayerEntity> entities = world.getEntitiesWithinAABB(PlayerEntity.class,
                 new AxisAlignedBB(eyes.x - maxWatchDistance, eyes.y - maxWatchDistance, eyes.z - maxWatchDistance,
                         eyes.x + maxWatchDistance, eyes.y + maxWatchDistance, eyes.z + maxWatchDistance), (player) -> {
@@ -192,8 +199,8 @@ public class EyesEntity extends MonsterEntity
                     if (player.getEyePosition(1).distanceTo(eyes) > maxWatchDistance)
                         return false;
 
-                    Vec3d vec3d = player.getLook(1.0F).normalize();
-                    Vec3d vec3d1 = new Vec3d(this.getPosX() - player.getPosX(), this.getBoundingBox().minY + (double) this.getEyeHeight() - (player.getPosY() + (double) player.getEyeHeight()), this.getPosZ() - player.getPosZ());
+                    Vector3d vec3d = player.getLook(1.0F).normalize();
+                    Vector3d vec3d1 = new Vector3d(this.getPosX() - player.getPosX(), this.getBoundingBox().minY + (double) this.getEyeHeight() - (player.getPosY() + (double) player.getEyeHeight()), this.getPosZ() - player.getPosZ());
                     double d0 = vec3d1.length();
                     vec3d1 = vec3d1.normalize();
                     double d1 = vec3d.dotProduct(vec3d1);
@@ -274,13 +281,6 @@ public class EyesEntity extends MonsterEntity
         super.onDeathUpdate();
     }
 
-    @Override
-    protected void registerAttributes()
-    {
-        super.registerAttributes();
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(1.0D);
-    }
-
     @Nullable
     @Override
     protected SoundEvent getAmbientSound()
@@ -331,7 +331,7 @@ public class EyesEntity extends MonsterEntity
         float blockLight = 0;
         if (excludeDaylight)
         {
-            if (world.dimension.hasSkyLight())
+            if (world.func_230315_m_().hasSkyLight())
             {
                 float skyLight = world.getLightFor(LightType.SKY, position)
                         - (1 - getSunBrightness()) * 11;
@@ -438,13 +438,13 @@ public class EyesEntity extends MonsterEntity
             if (eyes.getIsDormant())
                 return false;
 
-            Vec3d selfPos = eyes.getPositionVec();
+            Vector3d selfPos = eyes.getPositionVec();
             LivingEntity target = eyes.getAttackTarget();
             if (target == null)
                 return false;
-            Vec3d playerPos = target.getPositionVec();
-            Vec3d lookVec = target.getLookVec();
-            Vec3d playerLook = new Vec3d(lookVec.x, lookVec.y, lookVec.z);
+            Vector3d playerPos = target.getPositionVec();
+            Vector3d lookVec = target.getLookVec();
+            Vector3d playerLook = new Vector3d(lookVec.x, lookVec.y, lookVec.z);
             playerLook.normalize();
 
             playerPos.subtract(selfPos);
