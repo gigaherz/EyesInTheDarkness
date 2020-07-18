@@ -1,0 +1,9 @@
+{
+  "sound.eyesinthedarkness.eyes.laugh": "Что-то смеется",
+  "sound.eyesinthedarkness.eyes.disappear": "Глаза исчезают, смеясь",
+  "sound.eyesinthedarkness.eyes.jumpscare": "Визг глаз",
+
+  "item.eyesinthedarkness.eyes_spawn_egg": "Призвать глаза",
+
+  "entity.eyes": "Глаза"
+}
