@@ -4,6 +4,7 @@ loaderVersion="[32,)"
 issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
 displayURL="https://github.com/gigaherz/EyesInTheDarkness"
 logoFile="logo.png"
+license="BSD (3 clause)"
 
 [[mods]]
 modId="eyesinthedarkness"

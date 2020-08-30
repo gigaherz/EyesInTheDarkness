@@ -79,6 +79,7 @@ public class EyesInTheDarkness
         modEventBus.addListener(this::commonSetup);
 
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
+        modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::entityInit);
     }
@@ -131,7 +132,7 @@ public class EyesInTheDarkness
         channel.registerMessage(messageNumber++, InitiateJumpscarePacket.class, InitiateJumpscarePacket::encode, InitiateJumpscarePacket::new, InitiateJumpscarePacket::handle);
         LOGGER.debug("Final message number: " + messageNumber);
 
-        GlobalEntityTypeAttributes.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().func_233813_a_());
+        GlobalEntityTypeAttributes.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().create());
     }
 
     @SuppressWarnings("unchecked")

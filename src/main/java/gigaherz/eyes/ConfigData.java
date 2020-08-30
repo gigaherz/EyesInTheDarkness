@@ -93,6 +93,30 @@ public class ConfigData
         }
     }
 
+    public static final ClientConfig CLIENT;
+    public static final ForgeConfigSpec CLIENT_SPEC;
+
+    static
+    {
+        final Pair<ClientConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
+        CLIENT_SPEC = specPair.getRight();
+        CLIENT = specPair.getLeft();
+    }
+
+    public static class ClientConfig
+    {
+        public final ForgeConfigSpec.BooleanValue Jumpscare;
+
+        ClientConfig(ForgeConfigSpec.Builder builder)
+        {
+            builder.push("general");
+            Jumpscare = builder.comment("Set to false to prevent jumpscares from displaying client-side.\n" +
+                    "NOTE: Jumpscare effects such as poison still apply, this only prevents the visual and sound.")
+                    .define("jumpscare", true);
+            builder.pop();
+        }
+    }
+
     @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     private static class EventHandler
     {

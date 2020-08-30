@@ -73,7 +73,7 @@ public class EyesEntity extends MonsterEntity
     public static AttributeModifierMap.MutableAttribute prepareAttributes()
     {
         return MonsterEntity.func_234295_eP_()
-                .func_233815_a_(Attributes.field_233818_a_, 1.0D);
+                .createMutableAttribute(Attributes.MAX_HEALTH, 1.0D);
     }
 
     @Override
