@@ -50,15 +50,6 @@ public class EyesInTheDarkness
     @ObjectHolder(MODID + ":eyes_jumpscare")
     public static SoundEvent eyes_jumpscare;
 
-    /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
-    /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
-    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.create(EyesEntity::new, EyesEntity.CLASSIFICATION)
-            .setTrackingRange(80)
-            .setUpdateInterval(3)
-            .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
-            .setShouldReceiveVelocityUpdates(true)
-            .build(MODID + ":eyes"));
-
     private static final String CHANNEL="main";
     private static final String PROTOCOL_VERSION = "1.0";
     public static SimpleChannel channel = NetworkRegistry.ChannelBuilder
@@ -67,6 +58,15 @@ public class EyesInTheDarkness
             .serverAcceptedVersions(PROTOCOL_VERSION::equals)
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
             .simpleChannel();
+
+    /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
+    /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
+    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.create(EyesEntity::new, EyesEntity.CLASSIFICATION)
+            .setTrackingRange(80)
+            .setUpdateInterval(3)
+            .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
+            .setShouldReceiveVelocityUpdates(true)
+            .build(MODID + ":eyes"));
 
     public EyesInTheDarkness()
     {

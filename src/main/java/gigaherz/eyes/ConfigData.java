@@ -1,17 +1,29 @@
 package gigaherz.eyes;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import gigaherz.eyes.entity.EyesEntity;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.common.BiomeDictionary;
+import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -120,27 +132,19 @@ public class ConfigData
     @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     private static class EventHandler
     {
-        private static Collection<Biome> biomes = null;
-        private static Biome.SpawnListEntry eyesEntry = null;
+        private static final List<BiomeRule> rules = Lists.newArrayList();
+        private static int currentWeight = 0;
 
         @SubscribeEvent
-        public static void onLoad(final ModConfig.ModConfigEvent configEvent)
+        public static void biomeLoading(final ModConfig.ModConfigEvent event)
         {
-            ModConfig config = configEvent.getConfig();
+            ModConfig config = event.getConfig();
             if (config.getSpec() != SERVER_SPEC)
                 return;
 
-            // Empty all the spawn entries, in case the biome list changed.
-            if(eyesEntry != null)
-            {
-                biomes.stream().map(biome -> biome.getSpawns(EyesEntity.CLASSIFICATION)).forEach(list -> list.remove(eyesEntry));
-                biomes = Collections.emptyList();
-                eyesEntry = null;
-            }
-
             if(ConfigData.SERVER.EnableNaturalSpawn.get())
             {
-                int currentWeight = ConfigData.SERVER.OverrideWeight.get();
+                currentWeight = ConfigData.SERVER.OverrideWeight.get();
 
                 if(currentWeight < 0)
                 {
@@ -151,34 +155,36 @@ public class ConfigData
 
                     currentWeight = weightMin + ((weightMax - weightMin) * (30 - daysBefore)) / 30;
                 }
+            }
 
-                if (currentWeight > 0)
+            List<? extends String> biomeRules = orDefault(ConfigData.SERVER.BiomeRules.get(), Collections::emptyList);
+
+            rules.clear();
+            biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
+            rules.add(BiomeRule.disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+        }
+
+        @SubscribeEvent
+        public static void biomeLoading(final BiomeLoadingEvent event)
+        {
+            if (currentWeight > 0) // If spawn is enabled
+            {
+                if (isBiomeAllowed(event.getName()))
                 {
-                    biomes = ForgeRegistries.BIOMES.getValues();
-
-                    List<? extends String> biomeRules = orDefault(ConfigData.SERVER.BiomeRules.get(), Collections::emptyList);
-
-                    List<BiomeRule> rules = Lists.newArrayList();
-                    biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
-                    rules.add(BiomeRule.disallowLabel("VOID")); // Added at the end to make sure it's lowest priority.
-
-                    biomes = biomes.stream().filter(b -> {
-                        for(BiomeRule r : rules)
-                        {
-                            if (r.test(b))
-                                return r.allow;
-                        }
-                        return true;
-                    }).collect(Collectors.toList());
-
-                    if (biomes.size() > 0)
-                    {
-                        eyesEntry = new Biome.SpawnListEntry(EyesEntity.TYPE, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get());
-
-                        biomes.stream().map(biome -> biome.getSpawns(EyesEntity.CLASSIFICATION)).forEach(list -> list.add(eyesEntry));
-                    }
+                    event.getSpawns().getSpawner(EyesEntity.CLASSIFICATION)
+                            .add(new MobSpawnInfo.Spawners(EyesEntity.TYPE, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get()));
                 }
             }
+        }
+
+        private static boolean isBiomeAllowed(ResourceLocation name)
+        {
+            for (BiomeRule rule : rules)
+            {
+                if (rule.test(name))
+                    return rule.allow;
+            }
+            return true;
         }
 
         @Nonnull
@@ -189,13 +195,13 @@ public class ConfigData
             return defaultSupplier.get();
         }
 
-        private static class BiomeRule implements Predicate<Biome>
+        private static class BiomeRule implements Predicate<ResourceLocation>
         {
             public final boolean allow;
             public final boolean isLabel;
             public final String labelName;
             public final ResourceLocation registryName;
-            public final BiomeDictionary.Type labelType;
+            public final String labelType;
 
             private BiomeRule(boolean allow, boolean isLabel, String labelName)
             {
@@ -210,7 +216,7 @@ public class ConfigData
                 else if(isLabel)
                 {
                     this.registryName = null;
-                    this.labelType = BiomeDictionary.Type.getType(labelName);
+                    this.labelType = labelName;
                 }
                 else
                 {
@@ -220,7 +226,7 @@ public class ConfigData
             }
 
             @Override
-            public boolean test(Biome biome)
+            public boolean test(ResourceLocation biome)
             {
                 if (labelName == null)
                     return true;
@@ -230,7 +236,7 @@ public class ConfigData
                 }
                 else
                 {
-                    return registryName.equals(biome.getRegistryName());
+                    return registryName.equals(biome);
                 }
             }
 
