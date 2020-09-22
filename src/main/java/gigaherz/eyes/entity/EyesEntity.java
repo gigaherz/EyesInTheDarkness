@@ -313,8 +313,8 @@ public class EyesEntity extends MonsterEntity
     }
 
     public float getSunBrightness() {
-        float f = world.getCelestialAngle(1);
-        float f1 = 1.0F - (MathHelper.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.2F);
+        float angleRadians = world.getCelestialAngleRadians(1);
+        float f1 = 1.0F - (MathHelper.cos(angleRadians) * 2.0F + 0.2F);
         f1 = MathHelper.clamp(f1, 0.0F, 1.0F);
         f1 = 1.0F - f1;
         f1 = (float)((double)f1 * (1.0D - (double)(world.getRainStrength(1) * 5.0F) / 16.0D));
@@ -328,7 +328,7 @@ public class EyesEntity extends MonsterEntity
         float blockLight = 0;
         if (excludeDaylight)
         {
-            if (world.func_230315_m_().hasSkyLight())
+            if (world.getDimensionType().hasSkyLight())
             {
                 float skyLight = world.getLightFor(LightType.SKY, position)
                         - (1 - getSunBrightness()) * 11;

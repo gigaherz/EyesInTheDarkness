@@ -1,41 +1,29 @@
 package gigaherz.eyes;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.JsonOps;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.IServerWorld;
 import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.util.NonNullLazy;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class ConfigData
 {
@@ -48,6 +36,11 @@ public class ConfigData
         SERVER_SPEC = specPair.getRight();
         SERVER = specPair.getLeft();
     }
+
+    public static final int WEIGHT_DATE_MIN = 15;
+    public static final int WEIGHT_DATE_MAX = 150;
+    public static final int WEIGHT_TIME_MIN = 0;
+    public static final int WEIGHT_TIME_MAX = 45;
 
     public static class ServerConfig
     {
@@ -129,55 +122,89 @@ public class ConfigData
         }
     }
 
-    @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-    private static class EventHandler
-    {
-        private static final List<BiomeRule> rules = Lists.newArrayList();
-        private static int currentWeight = 0;
+    private static final NonNullLazy<MobSpawnInfo.Spawners> SPAWN_INFO = NonNullLazy.of(() -> new MobSpawnInfo.Spawners(EyesEntity.TYPE, 15, 1, 2));
+    private static final List<BiomeRule> rules = Lists.newArrayList();
+    private static int currentWeight = 0;
 
+    private static void calculateWeight()
+    {
+        if (ConfigData.SERVER.EnableNaturalSpawn.get())
+        {
+            currentWeight = ConfigData.SERVER.OverrideWeight.get();
+
+            if (currentWeight < 0)
+            {
+                int daysUntilNextHalloween = getDaysUntilNextHalloween();
+                int dateWeight = WEIGHT_DATE_MIN + ((WEIGHT_DATE_MAX - WEIGHT_DATE_MIN) * (30 - daysUntilNextHalloween)) / 30;
+
+                int minutesToMidnight = getMinutesToMidnight();
+                int timeWeight = WEIGHT_TIME_MIN + ((WEIGHT_TIME_MAX - WEIGHT_TIME_MIN) * Math.max(0, 240 - minutesToMidnight)) / 240;
+
+                currentWeight = Math.min(dateWeight + timeWeight, WEIGHT_DATE_MAX);
+            }
+        }
+        else
+        {
+            currentWeight = 0;
+        }
+        SPAWN_INFO.get().itemWeight = currentWeight;
+    }
+
+    @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    private static class ModEventHandler
+    {
         @SubscribeEvent
-        public static void biomeLoading(final ModConfig.ModConfigEvent event)
+        public static void configLoading(final ModConfig.ModConfigEvent event)
         {
             ModConfig config = event.getConfig();
             if (config.getSpec() != SERVER_SPEC)
                 return;
 
-            if(ConfigData.SERVER.EnableNaturalSpawn.get())
-            {
-                currentWeight = ConfigData.SERVER.OverrideWeight.get();
-
-                if(currentWeight < 0)
-                {
-                    int daysBefore = EyesInTheDarkness.getDaysUntilNextHalloween();
-
-                    int weightMin = 15;
-                    int weightMax = 150;
-
-                    currentWeight = weightMin + ((weightMax - weightMin) * (30 - daysBefore)) / 30;
-                }
-            }
+            calculateWeight();
 
             List<? extends String> biomeRules = orDefault(ConfigData.SERVER.BiomeRules.get(), Collections::emptyList);
 
             rules.clear();
             biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
             rules.add(BiomeRule.disallowLabel("void")); // Added at the end to make sure it's lowest priority.
-        }
 
+            SPAWN_INFO.get().minCount = ConfigData.SERVER.MinimumPackSize.get();
+            SPAWN_INFO.get().maxCount = ConfigData.SERVER.MaximumPackSize.get();
+        }
+    }
+
+    @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    private static class EventHandler
+    {
         @SubscribeEvent
         public static void biomeLoading(final BiomeLoadingEvent event)
         {
             if (currentWeight > 0) // If spawn is enabled
             {
-                if (isBiomeAllowed(event.getName()))
+                if (BiomeRule.isBiomeAllowed(event.getName()))
                 {
-                    event.getSpawns().getSpawner(EyesEntity.CLASSIFICATION)
-                            .add(new MobSpawnInfo.Spawners(EyesEntity.TYPE, currentWeight, ConfigData.SERVER.MinimumPackSize.get(), ConfigData.SERVER.MaximumPackSize.get()));
+                    event.getSpawns()
+                            .withSpawner(EyesEntity.CLASSIFICATION, SPAWN_INFO.get())
+                            .withSpawnCost(EyesEntity.TYPE, 0.5, 0.15);
                 }
             }
         }
 
-        private static boolean isBiomeAllowed(ResourceLocation name)
+        private static int ticker = 0;
+
+        @SubscribeEvent
+        public static void serverTick(final TickEvent.ServerTickEvent event)
+        {
+            if ((ticker++ % 300) == 0)
+            {
+                calculateWeight();
+            }
+        }
+    }
+
+    private static class BiomeRule implements Predicate<ResourceLocation>
+    {
+        public static boolean isBiomeAllowed(ResourceLocation name)
         {
             for (BiomeRule rule : rules)
             {
@@ -187,89 +214,108 @@ public class ConfigData
             return true;
         }
 
-        @Nonnull
-        private static <T> T orDefault(@Nullable T value, @Nonnull Supplier<T> defaultSupplier)
+        public final boolean allow;
+        public final boolean isLabel;
+        public final String labelName;
+        public final ResourceLocation registryName;
+        public final String labelType;
+
+        private BiomeRule(boolean allow, boolean isLabel, String labelName)
         {
-            if (value != null)
-                return value;
-            return defaultSupplier.get();
+            this.allow = allow;
+            this.isLabel = isLabel;
+            this.labelName = labelName;
+            if (labelName == null)
+            {
+                this.registryName = null;
+                this.labelType = null;
+            }
+            else if(isLabel)
+            {
+                this.registryName = null;
+                this.labelType = labelName;
+            }
+            else
+            {
+                this.registryName = new ResourceLocation(labelName);
+                this.labelType = null;
+            }
         }
 
-        private static class BiomeRule implements Predicate<ResourceLocation>
+        @Override
+        public boolean test(ResourceLocation biome)
         {
-            public final boolean allow;
-            public final boolean isLabel;
-            public final String labelName;
-            public final ResourceLocation registryName;
-            public final String labelType;
-
-            private BiomeRule(boolean allow, boolean isLabel, String labelName)
+            if (labelName == null)
+                return true;
+            if (isLabel)
             {
-                this.allow = allow;
-                this.isLabel = isLabel;
-                this.labelName = labelName;
-                if (labelName == null)
-                {
-                    this.registryName = null;
-                    this.labelType = null;
-                }
-                else if(isLabel)
-                {
-                    this.registryName = null;
-                    this.labelType = labelName;
-                }
-                else
-                {
-                    this.registryName = new ResourceLocation(labelName);
-                    this.labelType = null;
-                }
+                return false; // BiomeDictionary.hasType(biome, labelType);
             }
-
-            @Override
-            public boolean test(ResourceLocation biome)
+            else
             {
-                if (labelName == null)
-                    return true;
-                if (isLabel)
-                {
-                    return BiomeDictionary.hasType(biome, labelType);
-                }
-                else
-                {
-                    return registryName.equals(biome);
-                }
+                return registryName.equals(biome);
             }
+        }
 
-            public static BiomeRule parse(String rule)
+        public static BiomeRule parse(String rule)
+        {
+            boolean allow = true;
+            if (rule.startsWith("!"))
             {
-                boolean allow = true;
-                if (rule.startsWith("!"))
-                {
-                    allow = false;
-                    rule = rule.substring(1);
-                }
-                boolean isLabel = false;
-                if (rule.startsWith("#"))
-                {
-                    isLabel = true;
-                    rule = rule.substring(1);
-                }
-                else if (rule.equals("*"))
-                {
-                    rule = null;
-                }
-                return new BiomeRule(allow, isLabel, rule);
+                allow = false;
+                rule = rule.substring(1);
             }
+            boolean isLabel = false;
+            if (rule.startsWith("#"))
+            {
+                isLabel = true;
+                rule = rule.substring(1);
+            }
+            else if (rule.equals("*"))
+            {
+                rule = null;
+            }
+            return new BiomeRule(allow, isLabel, rule);
+        }
 
-            public static BiomeRule disallowLabel(String label)
-            {
-                return new BiomeRule(false, true, label);
-            }
+        public static BiomeRule disallowLabel(String label)
+        {
+            return new BiomeRule(false, true, label);
         }
     }
 
-    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, IWorld world, SpawnReason reason, BlockPos pos, Random random)
+    @Nonnull
+    private static <T> T orDefault(@Nullable T value, @Nonnull Supplier<T> defaultSupplier)
+    {
+        if (value != null)
+            return value;
+        return defaultSupplier.get();
+    }
+
+    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, IServerWorld world, SpawnReason reason, BlockPos pos, Random random)
     {
         return MonsterEntity.canMonsterSpawnInLight(entityType, world, reason, pos, random);
+    }
+
+    public static int getDaysUntilNextHalloween()
+    {
+        Calendar now = Calendar.getInstance();
+        Calendar nextHalloween = new Calendar.Builder()
+                .setDate(now.get(Calendar.YEAR), 9, 31)
+                .setTimeOfDay(23,59,59,999).build();
+        if (now.after(nextHalloween))
+        {
+            nextHalloween.add(Calendar.YEAR, 1);
+        }
+        return (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
+    }
+
+    public static int getMinutesToMidnight()
+    {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        if (hour > 12) hour -= 24;
+        return Math.abs(hour*24 + minute);
     }
 }

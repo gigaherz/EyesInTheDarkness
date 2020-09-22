@@ -113,19 +113,6 @@ public class EyesInTheDarkness
         );
     }
 
-    public static int getDaysUntilNextHalloween()
-    {
-        Calendar now = Calendar.getInstance();
-        Calendar nextHalloween = new Calendar.Builder()
-                .setDate(now.get(Calendar.YEAR), 9, 31)
-                .setTimeOfDay(23,59,59,999).build();
-        if (now.after(nextHalloween))
-        {
-            nextHalloween.add(Calendar.YEAR, 1);
-        }
-        return (int)Math.min(ChronoUnit.DAYS.between(now.toInstant(), nextHalloween.toInstant()), 30);
-    }
-
     public void commonSetup(FMLCommonSetupEvent event)
     {
         int messageNumber = 0;

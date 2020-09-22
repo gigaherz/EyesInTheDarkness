@@ -12,7 +12,7 @@ apply plugin: 'net.minecraftforge.gradle'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'maven-publish'
 
-version = "0.4.2"
+version = "0.5.0"
 group = "gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
@@ -24,6 +24,8 @@ sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = co
 
 minecraft {
     mappings channel: 'snapshot', version: '20200916-1.16.2'
+
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {

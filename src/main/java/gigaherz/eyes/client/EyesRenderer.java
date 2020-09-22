@@ -34,7 +34,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
 
         float blockLight = entity.world.getLightFor(LightType.BLOCK, position);
 
-        if (entity.world.func_230315_m_().hasSkyLight())
+        if (entity.world.getDimensionType().hasSkyLight())
         {
             float skyLight = entity.world.getLightFor(LightType.SKY, position)
                     - (1 - ((ClientWorld)entity.world).getSunBrightness(partialTicks)) * 11;
