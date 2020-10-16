@@ -19,7 +19,7 @@ Those eyes you think you saw when walking through the forest at night. No, you d
 [[dependencies.eyesinthedarkness]]
    modId="forge"
    mandatory=true
-   versionRange="[34.0.9,)"
+   versionRange="[34.1.22,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]

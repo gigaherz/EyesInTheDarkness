@@ -5,10 +5,14 @@ import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.IServerWorld;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.MobSpawnInfo;
+import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.event.TickEvent;
@@ -181,10 +185,10 @@ public class ConfigData
         {
             if (currentWeight > 0) // If spawn is enabled
             {
-                if (BiomeRule.isBiomeAllowed(event.getName()))
+                if (BiomeRule.isBiomeAllowed(RegistryKey.getOrCreateKey(Registry.BIOME_KEY, event.getName())))
                 {
                     event.getSpawns()
-                            .withSpawner(EyesEntity.CLASSIFICATION, SPAWN_INFO.get())
+                            .withSpawner(EyesInTheDarkness.CLASSIFICATION, SPAWN_INFO.get())
                             .withSpawnCost(EyesEntity.TYPE, 0.5, 0.15);
                 }
             }
@@ -202,9 +206,9 @@ public class ConfigData
         }
     }
 
-    private static class BiomeRule implements Predicate<ResourceLocation>
+    private static class BiomeRule implements Predicate<RegistryKey<Biome>>
     {
-        public static boolean isBiomeAllowed(ResourceLocation name)
+        public static boolean isBiomeAllowed(RegistryKey<Biome> name)
         {
             for (BiomeRule rule : rules)
             {
@@ -218,42 +222,42 @@ public class ConfigData
         public final boolean isLabel;
         public final String labelName;
         public final ResourceLocation registryName;
-        public final String labelType;
+        public final BiomeDictionary.Type labelType;
 
-        private BiomeRule(boolean allow, boolean isLabel, String labelName)
-        {
-            this.allow = allow;
-            this.isLabel = isLabel;
-            this.labelName = labelName;
-            if (labelName == null)
+            private BiomeRule(boolean allow, boolean isLabel, String labelName)
             {
-                this.registryName = null;
-                this.labelType = null;
+                this.allow = allow;
+                this.isLabel = isLabel;
+                this.labelName = labelName;
+                if (labelName == null)
+                {
+                    this.registryName = null;
+                    this.labelType = null;
+                }
+                else if(isLabel)
+                {
+                    this.registryName = null;
+                    this.labelType = BiomeDictionary.Type.getType(labelName);
+                }
+                else
+                {
+                    this.registryName = new ResourceLocation(labelName);
+                    this.labelType = null;
+                }
             }
-            else if(isLabel)
-            {
-                this.registryName = null;
-                this.labelType = labelName;
-            }
-            else
-            {
-                this.registryName = new ResourceLocation(labelName);
-                this.labelType = null;
-            }
-        }
 
         @Override
-        public boolean test(ResourceLocation biome)
+        public boolean test(RegistryKey<Biome> biome)
         {
             if (labelName == null)
                 return true;
             if (isLabel)
             {
-                return false; // BiomeDictionary.hasType(biome, labelType);
+                return BiomeDictionary.hasType(biome, labelType);
             }
             else
             {
-                return registryName.equals(biome);
+                return registryName.equals(biome.getLocation());
             }
         }
 

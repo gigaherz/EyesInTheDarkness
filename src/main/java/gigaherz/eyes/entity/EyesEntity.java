@@ -42,9 +42,6 @@ import java.util.function.DoubleSupplier;
 
 public class EyesEntity extends MonsterEntity
 {
-    // Needed to keep a dedicated spawn cap for the eyes.
-    public static final EntityClassification CLASSIFICATION = EntityClassification.create("EITD_EYES", "eitd_eyes", 15, false, false, 64);
-
     @ObjectHolder("eyesinthedarkness:eyes")
     public static EntityType<EyesEntity> TYPE = null;
 

@@ -1,7 +1,16 @@
 package gigaherz.eyes;
 
+import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
+import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import gigaherz.eyes.entity.EyesEntity;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
@@ -33,10 +42,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
+import java.util.List;
 
 @Mod(EyesInTheDarkness.MODID)
 public class EyesInTheDarkness
 {
+    // Needed to keep a dedicated spawn cap for the eyes.
+    public static final EntityClassification CLASSIFICATION = EntityClassification.create("EITD_EYES", "eitd_eyes", 15, false, false, 64);
+
     public static final String MODID = "eyesinthedarkness";
 
     public static final Logger LOGGER = LogManager.getLogger(MODID);
@@ -61,7 +74,7 @@ public class EyesInTheDarkness
 
     /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
     /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
-    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.create(EyesEntity::new, EyesEntity.CLASSIFICATION)
+    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.create(EyesEntity::new, CLASSIFICATION)
             .setTrackingRange(80)
             .setUpdateInterval(3)
             .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
