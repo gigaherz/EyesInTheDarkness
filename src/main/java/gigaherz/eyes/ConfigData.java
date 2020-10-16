@@ -41,6 +41,16 @@ public class ConfigData
         SERVER = specPair.getLeft();
     }
 
+    public static final CommonConfig COMMON;
+    public static final ForgeConfigSpec COMMON_SPEC;
+
+    static
+    {
+        final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
+        COMMON_SPEC = specPair.getRight();
+        COMMON = specPair.getLeft();
+    }
+
     public static final int WEIGHT_DATE_MIN = 15;
     public static final int WEIGHT_DATE_MAX = 150;
     public static final int WEIGHT_TIME_MIN = 0;
@@ -48,11 +58,6 @@ public class ConfigData
 
     public static class ServerConfig
     {
-        public final ForgeConfigSpec.BooleanValue EnableNaturalSpawn;
-        public final ForgeConfigSpec.IntValue OverrideWeight;
-        public final ForgeConfigSpec.IntValue MinimumPackSize;
-        public final ForgeConfigSpec.IntValue MaximumPackSize;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> BiomeRules;
         public final ForgeConfigSpec.BooleanValue Jumpscare;
         public final ForgeConfigSpec.IntValue JumpscareHurtLevel;
         public final ForgeConfigSpec.BooleanValue EyesCanAttackWhileLit;
@@ -61,6 +66,35 @@ public class ConfigData
         public final ForgeConfigSpec.BooleanValue EyeAggressionDependsOnLightLevel;
 
         ServerConfig(ForgeConfigSpec.Builder builder)
+        {
+            builder.push("general");
+            Jumpscare = builder.comment("Set to false to disable the jumpscare system.")
+                    .define("jumpscare", true);
+            JumpscareHurtLevel = builder.comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
+                    .defineInRange("jumpscareHurtLevel", 1, 0, 6);
+            EyesCanAttackWhileLit = builder.comment("While set to true, the eyes entity will ignore the artificial light level and will jumpscare even if it's lit. Daylight will still disable it's AI.")
+                    .define("eyesCanAttackWhileLit", true);
+            builder.pop();
+            builder.push("eye_aggression");
+            EnableEyeAggressionEscalation = builder.comment("While set to true, the eyes entities will progressively get more bold, and move faster, the longer they live.")
+                    .define("enableEscalation", true);
+            EyeAggressionDependsOnLocalDifficulty = builder.comment("While set to true, the eyes entities will spawn with higher aggresion levels in higher local difficulties.")
+                    .define("localDifficulty", true);
+            EyeAggressionDependsOnLightLevel = builder.comment("While set to true, the eyes entities will have higher aggression values on lower light levels.")
+                    .define("lightLevel", true);
+            builder.pop();
+        }
+    }
+
+    public static class CommonConfig
+    {
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> BiomeRules;
+        public final ForgeConfigSpec.BooleanValue EnableNaturalSpawn;
+        public final ForgeConfigSpec.IntValue OverrideWeight;
+        public final ForgeConfigSpec.IntValue MinimumPackSize;
+        public final ForgeConfigSpec.IntValue MaximumPackSize;
+
+        CommonConfig(ForgeConfigSpec.Builder builder)
         {
             builder.push("general");
             EnableNaturalSpawn = builder.comment("If false, the eyes entity will not spawn naturally during the night-")
@@ -84,20 +118,6 @@ public class ConfigData
                     "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#FOREST\" ]",
                     "NOTE: VOID type biomes are disabled by default, internally. You can explicitly enable those by adding \"#VOID\" to the rules, but this is not recommended."
             ).defineList("biomeRules", Lists.newArrayList(), o -> o instanceof String);
-            Jumpscare = builder.comment("Set to false to disable the jumpscare system.")
-                    .define("jumpscare", true);
-            JumpscareHurtLevel = builder.comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
-                    .defineInRange("jumpscareHurtLevel", 1, 0, 6);
-            EyesCanAttackWhileLit = builder.comment("While set to true, the eyes entity will ignore the artificial light level and will jumpscare even if it's lit. Daylight will still disable it's AI.")
-                    .define("eyesCanAttackWhileLit", true);
-            builder.pop();
-            builder.push("eye_aggression");
-            EnableEyeAggressionEscalation = builder.comment("While set to true, the eyes entities will progressively get more bold, and move faster, the longer they live.")
-                    .define("enableEscalation", true);
-            EyeAggressionDependsOnLocalDifficulty = builder.comment("While set to true, the eyes entities will spawn with higher aggresion levels in higher local difficulties.")
-                    .define("localDifficulty", true);
-            EyeAggressionDependsOnLightLevel = builder.comment("While set to true, the eyes entities will have higher aggression values on lower light levels.")
-                    .define("lightLevel", true);
             builder.pop();
         }
     }
@@ -132,9 +152,9 @@ public class ConfigData
 
     private static void calculateWeight()
     {
-        if (ConfigData.SERVER.EnableNaturalSpawn.get())
+        if (ConfigData.COMMON.EnableNaturalSpawn.get())
         {
-            currentWeight = ConfigData.SERVER.OverrideWeight.get();
+            currentWeight = ConfigData.COMMON.OverrideWeight.get();
 
             if (currentWeight < 0)
             {
@@ -166,14 +186,14 @@ public class ConfigData
 
             calculateWeight();
 
-            List<? extends String> biomeRules = orDefault(ConfigData.SERVER.BiomeRules.get(), Collections::emptyList);
+            List<? extends String> biomeRules = orDefault(ConfigData.COMMON.BiomeRules.get(), Collections::emptyList);
 
             rules.clear();
             biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
             rules.add(BiomeRule.disallowLabel("void")); // Added at the end to make sure it's lowest priority.
 
-            SPAWN_INFO.get().minCount = ConfigData.SERVER.MinimumPackSize.get();
-            SPAWN_INFO.get().maxCount = ConfigData.SERVER.MaximumPackSize.get();
+            SPAWN_INFO.get().minCount = ConfigData.COMMON.MinimumPackSize.get();
+            SPAWN_INFO.get().maxCount = ConfigData.COMMON.MaximumPackSize.get();
         }
     }
 

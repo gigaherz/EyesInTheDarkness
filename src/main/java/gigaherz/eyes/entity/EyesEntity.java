@@ -190,6 +190,9 @@ public class EyesEntity extends MonsterEntity
                 new AxisAlignedBB(eyes.x - maxWatchDistance, eyes.y - maxWatchDistance, eyes.z - maxWatchDistance,
                         eyes.x + maxWatchDistance, eyes.y + maxWatchDistance, eyes.z + maxWatchDistance), (player) -> {
 
+                    if (player.isSpectator() || !player.isAlive())
+                        return false;
+
                     if (player.getEyePosition(1).distanceTo(eyes) > maxWatchDistance)
                         return false;
 
