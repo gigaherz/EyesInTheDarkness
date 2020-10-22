@@ -98,12 +98,20 @@ public class ConfigData
         {
             builder.push("general");
             EnableNaturalSpawn = builder.comment("If false, the eyes entity will not spawn naturally during the night-")
+                    .worldRestart()
                     .define("enableNaturalSpawn", true);
             OverrideWeight = builder.comment("If -1, the default spawn weight will be used.")
+                    .worldRestart()
                     .defineInRange("overrideWeight", -1, -1, Integer.MAX_VALUE);
-            MinimumPackSize = builder.defineInRange("minimumPackSize", 1, 1, Integer.MAX_VALUE);
-            MaximumPackSize = builder.defineInRange("maximumPackSize", 2, 1, Integer.MAX_VALUE);
-            BiomeRules = builder.comment(
+            MinimumPackSize = builder
+                    .worldRestart()
+                    .defineInRange("minimumPackSize", 1, 1, Integer.MAX_VALUE);
+            MaximumPackSize = builder
+                    .worldRestart()
+                    .defineInRange("maximumPackSize", 2, 1, Integer.MAX_VALUE);
+            BiomeRules = builder
+                    .worldRestart()
+                    .comment(
                     "Specifies rules for accepting or rejecting biomes.",
                     "The rules are scanned one by one until a rule matches, This means the first rule to match takes precedence over any other subsequent rule, so more specific rules should go first.",
                     "Rules:",
@@ -146,7 +154,6 @@ public class ConfigData
         }
     }
 
-    private static final NonNullLazy<MobSpawnInfo.Spawners> SPAWN_INFO = NonNullLazy.of(() -> new MobSpawnInfo.Spawners(EyesEntity.TYPE, 15, 1, 2));
     private static final List<BiomeRule> rules = Lists.newArrayList();
     private static int currentWeight = 0;
 
@@ -171,7 +178,6 @@ public class ConfigData
         {
             currentWeight = 0;
         }
-        SPAWN_INFO.get().itemWeight = currentWeight;
     }
 
     @Mod.EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -181,19 +187,16 @@ public class ConfigData
         public static void configLoading(final ModConfig.ModConfigEvent event)
         {
             ModConfig config = event.getConfig();
-            if (config.getSpec() != SERVER_SPEC)
-                return;
+            if (config.getSpec() == COMMON_SPEC)
+            {
+                calculateWeight();
 
-            calculateWeight();
+                List<? extends String> biomeRules = orDefault(ConfigData.COMMON.BiomeRules.get(), Collections::emptyList);
 
-            List<? extends String> biomeRules = orDefault(ConfigData.COMMON.BiomeRules.get(), Collections::emptyList);
-
-            rules.clear();
-            biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
-            rules.add(BiomeRule.disallowLabel("void")); // Added at the end to make sure it's lowest priority.
-
-            SPAWN_INFO.get().minCount = ConfigData.COMMON.MinimumPackSize.get();
-            SPAWN_INFO.get().maxCount = ConfigData.COMMON.MaximumPackSize.get();
+                rules.clear();
+                biomeRules.forEach(r -> rules.add(BiomeRule.parse(r)));
+                rules.add(BiomeRule.disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+            }
         }
     }
 
@@ -205,10 +208,17 @@ public class ConfigData
         {
             if (currentWeight > 0) // If spawn is enabled
             {
-                if (BiomeRule.isBiomeAllowed(RegistryKey.getOrCreateKey(Registry.BIOME_KEY, event.getName())))
+                RegistryKey<Biome> biomeRegistryKey = RegistryKey.getOrCreateKey(Registry.BIOME_KEY, event.getName());
+                if (BiomeRule.isBiomeAllowed(biomeRegistryKey))
                 {
+                    int weight = currentWeight;
+                    if (BiomeDictionary.hasType(biomeRegistryKey, BiomeDictionary.Type.SPOOKY))
+                        weight *=2;
+
+                    MobSpawnInfo.Spawners spawn = new MobSpawnInfo.Spawners(EyesEntity.TYPE, weight, ConfigData.COMMON.MinimumPackSize.get(), ConfigData.COMMON.MaximumPackSize.get());
+
                     event.getSpawns()
-                            .withSpawner(EyesInTheDarkness.CLASSIFICATION, SPAWN_INFO.get())
+                            .withSpawner(EyesInTheDarkness.CLASSIFICATION, spawn)
                             .withSpawnCost(EyesEntity.TYPE, 0.5, 0.15);
                 }
             }

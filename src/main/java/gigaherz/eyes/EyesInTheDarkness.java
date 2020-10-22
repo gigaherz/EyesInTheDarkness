@@ -93,6 +93,7 @@ public class EyesInTheDarkness
 
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
+        modLoadingContext.registerConfig(ModConfig.Type.COMMON, ConfigData.COMMON_SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::entityInit);
     }
