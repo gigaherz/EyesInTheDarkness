@@ -1,8 +1,6 @@
 package gigaherz.eyes;
 
 import gigaherz.eyes.client.ClientMessageHandler;
-import gigaherz.eyes.client.JumpscareOverlay;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 

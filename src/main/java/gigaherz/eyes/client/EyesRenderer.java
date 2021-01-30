@@ -4,7 +4,8 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -37,12 +38,12 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         if (entity.world.getDimensionType().hasSkyLight())
         {
             float skyLight = entity.world.getLightFor(LightType.SKY, position)
-                    - (1 - ((ClientWorld)entity.world).getSunBrightness(partialTicks)) * 11;
+                    - (1 - ((ClientWorld) entity.world).getSunBrightness(partialTicks)) * 11;
 
             blockLight = Math.max(blockLight, skyLight);
         }
 
-        float mixAlpha = MathHelper.clamp((8-blockLight)/8.0f,0,1);
+        float mixAlpha = MathHelper.clamp((8 - blockLight) / 8.0f, 0, 1);
 
         if (mixAlpha <= 0)
             return;
@@ -72,28 +73,28 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
                 .tex(0, hoff + th)
                 .overlay(packedOverlayCoords)
                 .lightmap(packedLightmapCoords)
-                .normal(0,0,1)
+                .normal(0, 0, 1)
                 .endVertex();
         buffer.pos(matrix, -w, h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(0, hoff)
                 .overlay(packedOverlayCoords)
                 .lightmap(packedLightmapCoords)
-                .normal(0,0,1)
+                .normal(0, 0, 1)
                 .endVertex();
         buffer.pos(matrix, w, h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(tw, hoff)
                 .overlay(packedOverlayCoords)
                 .lightmap(packedLightmapCoords)
-                .normal(0,0,1)
+                .normal(0, 0, 1)
                 .endVertex();
         buffer.pos(matrix, w, -h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .tex(tw, hoff + th)
                 .overlay(packedOverlayCoords)
                 .lightmap(packedLightmapCoords)
-                .normal(0,0,1)
+                .normal(0, 0, 1)
                 .endVertex();
 
         matrixStack.pop();
@@ -109,11 +110,11 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
             int half_blink = EyesEntity.BLINK_DURATION / 2;
             if (entity.blinkProgress < half_blink)
             {
-                hoff = MathHelper.floor((entity.blinkProgress+partialTicks) * 4f / half_blink) * th;
+                hoff = MathHelper.floor((entity.blinkProgress + partialTicks) * 4f / half_blink) * th;
             }
             else
             {
-                hoff = Math.max(0, 8 - MathHelper.floor((entity.blinkProgress+partialTicks) * 4f / half_blink)) * th;
+                hoff = Math.max(0, 8 - MathHelper.floor((entity.blinkProgress + partialTicks) * 4f / half_blink)) * th;
             }
         }
         return hoff;

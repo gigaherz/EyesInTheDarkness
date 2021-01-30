@@ -2,7 +2,7 @@ package gigaherz.eyes.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import gigaherz.eyes.ConfigData;
+import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.EyesInTheDarkness;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
@@ -32,12 +32,12 @@ public class JumpscareOverlay extends AbstractGui
     private Minecraft mc;
 
     private static final Rectangle2d[] FRAMES = {
-            new Rectangle2d(0,0,13,6),
-            new Rectangle2d(0,7,13,6),
-            new Rectangle2d(0,14,13,6),
-            new Rectangle2d(0,21,13,6),
-            new Rectangle2d(15,1,15,8),
-            new Rectangle2d(15,16,15,12),
+            new Rectangle2d(0, 0, 13, 6),
+            new Rectangle2d(0, 7, 13, 6),
+            new Rectangle2d(0, 14, 13, 6),
+            new Rectangle2d(0, 21, 13, 6),
+            new Rectangle2d(15, 1, 15, 8),
+            new Rectangle2d(15, 16, 15, 12),
     };
     private static final int ANIMATION_APPEAR = 10;
     private static final int ANIMATION_LINGER = 90;
@@ -58,11 +58,16 @@ public class JumpscareOverlay extends AbstractGui
 
     public void show(double ex, double ey, double ez)
     {
-        if (ConfigData.CLIENT.Jumpscare.get())
+        if (ConfigData.jumpscareClient)
         {
             visible = true;
-            mc.world.playSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundCategory.HOSTILE, 1, 1, false);
+            mc.world.playSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundCategory.HOSTILE, getJumpscareVolume(), 1, false);
         }
+    }
+
+    protected float getJumpscareVolume()
+    {
+        return (float)ConfigData.eyeIdleVolume;
     }
 
     @SubscribeEvent
@@ -110,8 +115,8 @@ public class JumpscareOverlay extends AbstractGui
 
         float darkening = MathHelper.clamp(
                 Math.min(
-                        time/ ANIMATION_APPEAR,
-                        (ANIMATION_TOTAL-time)/ANIMATION_FADE
+                        time / ANIMATION_APPEAR,
+                        (ANIMATION_TOTAL - time) / ANIMATION_FADE
                 ), 0, 1
         );
 
@@ -119,7 +124,7 @@ public class JumpscareOverlay extends AbstractGui
         int blinkstate = 0;
         if (time >= ANIMATION_BLINK_START)
         {
-            if(time >= ANIMATION_SCARE_START)
+            if (time >= ANIMATION_SCARE_START)
             {
                 blinkstate = 1;
                 showCreep = (time - ANIMATION_SCARE_START) > ANIMATION_SCARE1;
@@ -140,11 +145,11 @@ public class JumpscareOverlay extends AbstractGui
             int texW = 2048;
             int texH = 1024;
 
-            float scale1 = screenHeight / (float)texH;
+            float scale1 = screenHeight / (float) texH;
             int drawY = 0;
             int drawH = screenHeight;
             int drawW = MathHelper.floor(texW * scale1);
-            int drawX = (screenWidth-drawW)/2;
+            int drawX = (screenWidth - drawW) / 2;
             RenderSystem.enableBlend();
             drawScaledCustomTexture(TEXTURE_FLASH, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
         }
@@ -152,12 +157,12 @@ public class JumpscareOverlay extends AbstractGui
         {
             // FIXME
             MatrixStack temp = new MatrixStack();
-            fill(temp, 0,0, screenWidth, screenHeight, alpha << 24);
-            RenderSystem.color4f(1,1,1,1);
+            fill(temp, 0, 0, screenWidth, screenHeight, alpha << 24);
+            RenderSystem.color4f(1, 1, 1, 1);
             RenderSystem.enableBlend();
         }
 
-        if(blinkstate != 1)
+        if (blinkstate != 1)
         {
             float scale = Float.MAX_VALUE;
             for (Rectangle2d r : FRAMES)
@@ -213,10 +218,10 @@ public class JumpscareOverlay extends AbstractGui
 
     private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
     {
-        int a = (color >> 24)&255;
-        int r = (color >> 16)&255;
-        int g = (color >> 8)&255;
-        int b = (color >> 0)&255;
+        int a = (color >> 24) & 255;
+        int r = (color >> 16) & 255;
+        int g = (color >> 8) & 255;
+        int b = (color >> 0) & 255;
 
         mc.textureManager.bindTexture(tex);
 
@@ -226,16 +231,16 @@ public class JumpscareOverlay extends AbstractGui
 
         buffer.pos(targetX, targetY, 0)
                 .tex(tx / texW, ty / texH)
-                .color(r,g,b,a).endVertex();
+                .color(r, g, b, a).endVertex();
         buffer.pos(targetX, targetY + targetH, 0)
                 .tex(tx / texW, (ty + th) / texH)
-                .color(r,g,b,a).endVertex();
+                .color(r, g, b, a).endVertex();
         buffer.pos(targetX + targetW, targetY + targetH, 0)
                 .tex((tx + tw) / texW, (ty + th) / texH)
-                .color(r,g,b,a).endVertex();
+                .color(r, g, b, a).endVertex();
         buffer.pos(targetX + targetW, targetY, 0)
                 .tex((tx + tw) / texW, ty / texH)
-                .color(r,g,b,a).endVertex();
+                .color(r, g, b, a).endVertex();
 
         tessellator.draw();
     }

@@ -1,14 +1,7 @@
 package gigaherz.eyes;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonElement;
-import com.mojang.datafixers.util.Either;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.JsonOps;
+import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
@@ -27,6 +20,7 @@ import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -39,10 +33,6 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ObjectHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.List;
 
 @Mod(EyesInTheDarkness.MODID)
 public class EyesInTheDarkness
@@ -63,7 +53,7 @@ public class EyesInTheDarkness
     @ObjectHolder(MODID + ":eyes_jumpscare")
     public static SoundEvent eyes_jumpscare;
 
-    private static final String CHANNEL="main";
+    private static final String CHANNEL = "main";
     private static final String PROTOCOL_VERSION = "1.0";
     public static SimpleChannel channel = NetworkRegistry.ChannelBuilder
             .named(location(CHANNEL))
@@ -93,7 +83,6 @@ public class EyesInTheDarkness
 
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
-        modLoadingContext.registerConfig(ModConfig.Type.COMMON, ConfigData.COMMON_SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::entityInit);
     }
@@ -134,21 +123,22 @@ public class EyesInTheDarkness
         LOGGER.debug("Final message number: " + messageNumber);
 
         GlobalEntityTypeAttributes.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().create());
+
+        EyesSpawningManager.init();
     }
 
-    @SuppressWarnings("unchecked")
     public void entityInit(EntityJoinWorldEvent event)
     {
         Entity e = event.getEntity();
         if (e instanceof WolfEntity)
         {
-            WolfEntity wolf = (WolfEntity)e;
+            WolfEntity wolf = (WolfEntity) e;
             wolf.targetSelector.addGoal(5,
                     new NearestAttackableTargetGoal<>(wolf, EyesEntity.class, false));
         }
         if (e instanceof OcelotEntity)
         {
-            OcelotEntity cat = (OcelotEntity)e;
+            OcelotEntity cat = (OcelotEntity) e;
             cat.goalSelector.addGoal(3, new AvoidEntityGoal<>(cat, EyesEntity.class, 6.0F, 1.0D, 1.2D));
         }
     }
