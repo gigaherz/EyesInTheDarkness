@@ -29,6 +29,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.LightType;
@@ -52,15 +53,11 @@ public class EyesEntity extends MonsterEntity
     private static final DataParameter<Float> AGGRO = EntityDataManager.createKey(EyesEntity.class, DataSerializers.FLOAT);
 
     private static final float AGGRO_ESCALATION_PER_TICK = 1f / (20 * 60 * 5); // 300 seconds to reach max (5 minutes)
-    private static final double SPEED_NO_AGGRO = 0.1f;
-    private static final double SPEED_FULL_AGGRO = 0.5f;
 
     public final static int BLINK_DURATION = 5;
 
     public boolean blinkingState;
     public int blinkProgress;
-
-    private static Random RAND = new Random();
 
     public EyesEntity(EntityType<? extends EyesEntity> type, World worldIn)
     {
@@ -113,7 +110,7 @@ public class EyesEntity extends MonsterEntity
     {
         if (getIsDormant())
             return 0;
-        return MathHelper.clampedLerp(getAggroLevel(), SPEED_NO_AGGRO, SPEED_FULL_AGGRO);
+        return MathHelper.clampedLerp(getAggroLevel(), ConfigData.speedNoAggro, ConfigData.speedFullAggro);
     }
 
     @Nullable
@@ -123,7 +120,7 @@ public class EyesEntity extends MonsterEntity
         if (ConfigData.eyeAggressionDependsOnLocalDifficulty)
         {
             float difficulty = difficultyIn.getClampedAdditionalDifficulty();
-            setAggroLevel(RAND.nextFloat() * difficulty);
+            setAggroLevel(world.rand.nextFloat() * difficulty);
         }
         return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
     }
@@ -158,6 +155,9 @@ public class EyesEntity extends MonsterEntity
     {
         super.livingTick();
 
+        setCustomName(new StringTextComponent(String.format("%d - %f - %s", getEntityId(), getAggroLevel(), getIsDormant())));
+        setCustomNameVisible(true);
+
         if (world.isRemote)
         {
             if (getIsDormant())
@@ -165,7 +165,7 @@ public class EyesEntity extends MonsterEntity
 
             if (!blinkingState)
             {
-                if (RAND.nextFloat() < .02f)
+                if (world.rand.nextFloat() < .02f)
                 {
                     blinkingState = true;
                     blinkProgress = 0;
@@ -246,6 +246,9 @@ public class EyesEntity extends MonsterEntity
     @Override
     protected void collideWithEntity(Entity entityIn)
     {
+        if (getIsDormant())
+            return;
+
         if (entityIn instanceof PlayerEntity)
         {
             disappear(true);
@@ -296,6 +299,8 @@ public class EyesEntity extends MonsterEntity
     @Override
     protected SoundEvent getAmbientSound()
     {
+        if (getIsDormant())
+            return null;
         return EyesInTheDarkness.eyes_laugh;
     }
 

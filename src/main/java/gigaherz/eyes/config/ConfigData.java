@@ -72,6 +72,9 @@ public class ConfigData
         public final ForgeConfigSpec.IntValue maxEyesAroundPlayerHalloween;
         public final ForgeConfigSpec.IntValue maxTotalEyesPerDimensionHalloween;
 
+        public final ForgeConfigSpec.DoubleValue speedNoAggro;
+        public final ForgeConfigSpec.DoubleValue speedFullAggro;
+
         ServerConfig(ForgeConfigSpec.Builder builder)
         {
             builder.push("general");
@@ -165,6 +168,10 @@ public class ConfigData
                     .defineInRange("MaxEyesAroundPlayer", 5, 1, Integer.MAX_VALUE);
             maxTotalEyesPerDimensionHalloween = builder.comment("Max number of eyes entities that will spawn in each dimension.")
                     .defineInRange("MaxTotalEyesPerDimension", 50, 1, Integer.MAX_VALUE);
+            speedNoAggro = builder.comment("The speed at which the eyes move, when not aggressive.")
+                    .defineInRange("SpeedNoAggro", 0.1f, 0.0f, Double.MAX_VALUE);
+            speedFullAggro = builder.comment("The speed at which the eyes move when aggressive.")
+                    .defineInRange("SpeedFullAggro", 0.5f, 0.0f, Double.MAX_VALUE);
             builder.pop();
         }
     }
@@ -207,6 +214,9 @@ public class ConfigData
     public static int maxEyesAroundPlayerHalloween;
     public static int maxTotalEyesPerDimensionHalloween;
 
+    public static double speedNoAggro;
+    public static double speedFullAggro;
+
     // Client
     public static boolean jumpscareClient;
 
@@ -244,6 +254,9 @@ public class ConfigData
                 spawnCycleIntervalHalloween = SERVER.spawnCycleIntervalHalloween.get();
                 maxEyesAroundPlayerHalloween = SERVER.maxEyesAroundPlayerHalloween.get();
                 maxTotalEyesPerDimensionHalloween = SERVER.maxTotalEyesPerDimensionHalloween.get();
+
+                speedNoAggro = SERVER.speedNoAggro.get();
+                speedFullAggro = SERVER.speedFullAggro.get();
 
                 List<? extends String> biomeRules = orDefault(SERVER.biomeRules.get(), Collections::emptyList);
                 List<? extends String> dimensionRules = orDefault(SERVER.dimensionRules.get(), Collections::emptyList);
