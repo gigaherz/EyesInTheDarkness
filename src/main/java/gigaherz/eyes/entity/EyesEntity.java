@@ -155,9 +155,6 @@ public class EyesEntity extends MonsterEntity
     {
         super.livingTick();
 
-        setCustomName(new StringTextComponent(String.format("%d - %f - %s", getEntityId(), getAggroLevel(), getIsDormant())));
-        setCustomNameVisible(true);
-
         if (world.isRemote)
         {
             if (getIsDormant())
