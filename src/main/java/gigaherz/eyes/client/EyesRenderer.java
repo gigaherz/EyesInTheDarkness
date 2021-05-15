@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 public class EyesRenderer extends EntityRenderer<EyesEntity>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
-    private final RenderType renderType = RenderType.getEntityTranslucent(TEXTURE);
+    private final RenderType renderType = RenderType.entityTranslucent(TEXTURE);
 
     public EyesRenderer(EntityRendererManager renderManager)
     {
@@ -33,12 +33,12 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
     {
         BlockPos position = entity.getBlockPosEyes();
 
-        float blockLight = entity.world.getLightFor(LightType.BLOCK, position);
+        float blockLight = entity.level.getBrightness(LightType.BLOCK, position);
 
-        if (entity.world.getDimensionType().hasSkyLight())
+        if (entity.level.dimensionType().hasSkyLight())
         {
-            float skyLight = entity.world.getLightFor(LightType.SKY, position)
-                    - (1 - ((ClientWorld) entity.world).getSunBrightness(partialTicks)) * 11;
+            float skyLight = entity.level.getBrightness(LightType.SKY, position)
+                    - (1 - ((ClientWorld) entity.level).getSkyDarken(partialTicks)) * 11;
 
             blockLight = Math.max(blockLight, skyLight);
         }
@@ -48,9 +48,9 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         if (mixAlpha <= 0)
             return;
 
-        matrixStack.push();
+        matrixStack.pushPose();
         matrixStack.translate(0, entity.getEyeHeight(), 0);
-        matrixStack.rotate(this.renderManager.getCameraOrientation());
+        matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
 
         float aggro = entity.getAggroLevel();
 
@@ -67,37 +67,37 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
         int packedLightmapCoords = 0x00F000F0;
         IVertexBuilder buffer = bufferIn.getBuffer(renderType);
-        Matrix4f matrix = matrixStack.getLast().getMatrix();
-        buffer.pos(matrix, -w, -h, 0)
+        Matrix4f matrix = matrixStack.last().pose();
+        buffer.vertex(matrix, -w, -h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .tex(0, hoff + th)
-                .overlay(packedOverlayCoords)
-                .lightmap(packedLightmapCoords)
+                .uv(0, hoff + th)
+                .overlayCoords(packedOverlayCoords)
+                .uv2(packedLightmapCoords)
                 .normal(0, 0, 1)
                 .endVertex();
-        buffer.pos(matrix, -w, h, 0)
+        buffer.vertex(matrix, -w, h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .tex(0, hoff)
-                .overlay(packedOverlayCoords)
-                .lightmap(packedLightmapCoords)
+                .uv(0, hoff)
+                .overlayCoords(packedOverlayCoords)
+                .uv2(packedLightmapCoords)
                 .normal(0, 0, 1)
                 .endVertex();
-        buffer.pos(matrix, w, h, 0)
+        buffer.vertex(matrix, w, h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .tex(tw, hoff)
-                .overlay(packedOverlayCoords)
-                .lightmap(packedLightmapCoords)
+                .uv(tw, hoff)
+                .overlayCoords(packedOverlayCoords)
+                .uv2(packedLightmapCoords)
                 .normal(0, 0, 1)
                 .endVertex();
-        buffer.pos(matrix, w, -h, 0)
+        buffer.vertex(matrix, w, -h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .tex(tw, hoff + th)
-                .overlay(packedOverlayCoords)
-                .lightmap(packedLightmapCoords)
+                .uv(tw, hoff + th)
+                .overlayCoords(packedOverlayCoords)
+                .uv2(packedLightmapCoords)
                 .normal(0, 0, 1)
                 .endVertex();
 
-        matrixStack.pop();
+        matrixStack.popPose();
 
         super.render(entity, entityYaw, partialTicks, matrixStack, bufferIn, packedLightIn);
     }
@@ -120,9 +120,8 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         return hoff;
     }
 
-    @Nullable
     @Override
-    public ResourceLocation getEntityTexture(EyesEntity entity)
+    public ResourceLocation getTextureLocation(EyesEntity entity)
     {
         return TEXTURE;
     }

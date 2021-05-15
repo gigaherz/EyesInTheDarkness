@@ -6,7 +6,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
 import net.minecraft.entity.passive.OcelotEntity;
@@ -20,7 +19,7 @@ import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -28,6 +27,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ObjectHolder;
@@ -64,7 +64,7 @@ public class EyesInTheDarkness
 
     /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
     /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
-    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.create(EyesEntity::new, CLASSIFICATION)
+    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
             .setTrackingRange(80)
             .setUpdateInterval(3)
             .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
@@ -80,6 +80,7 @@ public class EyesInTheDarkness
         modEventBus.addGenericListener(EntityType.class, this::registerEntities);
         modEventBus.addGenericListener(Item.class, this::registerItems);
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::entityAttributes);
 
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
@@ -109,20 +110,25 @@ public class EyesInTheDarkness
                 ConfigData::canEyesSpawnAt);
     }
 
+    public void entityAttributes(EntityAttributeCreationEvent event)
+    {
+        event.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().build());
+    }
+
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         event.getRegistry().registerAll(
-                new SpawnEggItem(eyesInit.get(), 0x000000, 0x7F0000, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(location("eyes_spawn_egg"))
+                new SpawnEggItem(eyesInit.get(), 0x000000, 0x7F0000, new Item.Properties().tab(ItemGroup.TAB_MISC)).setRegistryName(location("eyes_spawn_egg"))
         );
     }
 
     public void commonSetup(FMLCommonSetupEvent event)
     {
         int messageNumber = 0;
-        channel.registerMessage(messageNumber++, InitiateJumpscarePacket.class, InitiateJumpscarePacket::encode, InitiateJumpscarePacket::new, InitiateJumpscarePacket::handle);
+        channel.messageBuilder(InitiateJumpscarePacket.class, messageNumber++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(InitiateJumpscarePacket::encode).decoder(InitiateJumpscarePacket::new).consumer(InitiateJumpscarePacket::handle)
+                .add();
         LOGGER.debug("Final message number: " + messageNumber);
-
-        GlobalEntityTypeAttributes.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().create());
 
         EyesSpawningManager.init();
     }

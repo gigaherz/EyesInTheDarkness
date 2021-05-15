@@ -61,7 +61,7 @@ public class JumpscareOverlay extends AbstractGui
         if (ConfigData.jumpscareClient)
         {
             visible = true;
-            mc.world.playSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundCategory.HOSTILE, getJumpscareVolume(), 1, false);
+            mc.level.playLocalSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundCategory.HOSTILE, getJumpscareVolume(), 1, false);
         }
     }
 
@@ -93,8 +93,8 @@ public class JumpscareOverlay extends AbstractGui
         //1.14 : if not canceled, a mini screen of the game will still render while in a jumpscare.
         event.setCanceled(true);
 
-        int screenWidth = event.getWindow().getWidth();
-        int screenHeight = event.getWindow().getHeight();
+        int screenWidth = event.getWindow().getScreenWidth();
+        int screenHeight = event.getWindow().getScreenHeight();
 
         float time = progress + event.getPartialTicks();
         if (time >= ANIMATION_TOTAL)
@@ -198,22 +198,22 @@ public class JumpscareOverlay extends AbstractGui
 
     private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
     {
-        mc.textureManager.bindTexture(tex);
+        mc.textureManager.bind(tex);
 
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
+        BufferBuilder buffer = tessellator.getBuilder();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 
-        buffer.pos(targetX, targetY, 0)
-                .tex(tx / texW, ty / texH).endVertex();
-        buffer.pos(targetX, targetY + targetH, 0)
-                .tex(tx / texW, (ty + th) / texH).endVertex();
-        buffer.pos(targetX + targetW, targetY + targetH, 0)
-                .tex((tx + tw) / texW, (ty + th) / texH).endVertex();
-        buffer.pos(targetX + targetW, targetY, 0)
-                .tex((tx + tw) / texW, ty / texH).endVertex();
+        buffer.vertex(targetX, targetY, 0)
+                .uv(tx / texW, ty / texH).endVertex();
+        buffer.vertex(targetX, targetY + targetH, 0)
+                .uv(tx / texW, (ty + th) / texH).endVertex();
+        buffer.vertex(targetX + targetW, targetY + targetH, 0)
+                .uv((tx + tw) / texW, (ty + th) / texH).endVertex();
+        buffer.vertex(targetX + targetW, targetY, 0)
+                .uv((tx + tw) / texW, ty / texH).endVertex();
 
-        tessellator.draw();
+        tessellator.end();
     }
 
     private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
@@ -223,25 +223,25 @@ public class JumpscareOverlay extends AbstractGui
         int g = (color >> 8) & 255;
         int b = (color >> 0) & 255;
 
-        mc.textureManager.bindTexture(tex);
+        mc.textureManager.bind(tex);
 
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
+        BufferBuilder buffer = tessellator.getBuilder();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 
-        buffer.pos(targetX, targetY, 0)
-                .tex(tx / texW, ty / texH)
+        buffer.vertex(targetX, targetY, 0)
+                .uv(tx / texW, ty / texH)
                 .color(r, g, b, a).endVertex();
-        buffer.pos(targetX, targetY + targetH, 0)
-                .tex(tx / texW, (ty + th) / texH)
+        buffer.vertex(targetX, targetY + targetH, 0)
+                .uv(tx / texW, (ty + th) / texH)
                 .color(r, g, b, a).endVertex();
-        buffer.pos(targetX + targetW, targetY + targetH, 0)
-                .tex((tx + tw) / texW, (ty + th) / texH)
+        buffer.vertex(targetX + targetW, targetY + targetH, 0)
+                .uv((tx + tw) / texW, (ty + th) / texH)
                 .color(r, g, b, a).endVertex();
-        buffer.pos(targetX + targetW, targetY, 0)
-                .tex((tx + tw) / texW, ty / texH)
+        buffer.vertex(targetX + targetW, targetY, 0)
+                .uv((tx + tw) / texW, ty / texH)
                 .color(r, g, b, a).endVertex();
 
-        tessellator.draw();
+        tessellator.end();
     }
 }

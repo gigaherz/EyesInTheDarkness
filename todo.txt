@@ -1,0 +1,5 @@
+eyes could stay at minimum distance and walk away if you try to get closer
+
+eyes could teleport behind you if you look away
+
+eyes should remain silent while you are observing them

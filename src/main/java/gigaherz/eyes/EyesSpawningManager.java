@@ -8,16 +8,16 @@ import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.entity.*;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.INBT;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.server.ServerChunkProvider;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -27,11 +27,13 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
@@ -94,18 +96,20 @@ public class EyesSpawningManager
 
     private static void onWorldTick(TickEvent.WorldTickEvent event)
     {
-        if (event.world.isRemote) return;
+        if (event.world.isClientSide) return;
         event.world.getCapability(INSTANCE).ifPresent(EyesSpawningManager::tick);
     }
 
     private final Stopwatch watch = Stopwatch.createUnstarted();
     private final ServerWorld parent;
+    private final ServerChunkProvider chunkSource;
     private int cooldown;
     private int ticks;
 
     private EyesSpawningManager(ServerWorld world)
     {
         this.parent = world;
+        this.chunkSource = parent.getChunkSource();
         this.cooldown = 0;
     }
 
@@ -131,15 +135,31 @@ public class EyesSpawningManager
         return Math.abs(hour * 24 + minute);
     }
 
+    private static final Field f_spawnEnemies = ObfuscationReflectionHelper.findField(ServerChunkProvider.class, "field_217246_l");
+    private boolean isEnemySpawnEnabled()
+    {
+        try
+        {
+            return (boolean) f_spawnEnemies.get(chunkSource);
+        }
+        catch (IllegalAccessException e)
+        {
+            throw new RuntimeException("Error accessing field", e);
+        }
+    }
+
     private void tick()
     {
-        if (!ConfigData.enableNaturalSpawn)
-            return;
-
         if (--cooldown > 0)
             return;
 
         cooldown = 150;
+
+        if (!ConfigData.enableNaturalSpawn || !parent.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING))
+            return;
+
+        if (!isEnemySpawnEnabled())
+            return;
 
         if (!DimensionRules.isDimensionAllowed(parent))
             return;
@@ -165,16 +185,18 @@ public class EyesSpawningManager
             }
 
             float d = ConfigData.maxEyesSpawnDistance;
-            AxisAlignedBB size = AxisAlignedBB.withSizeAtOrigin(d, d, d);
+            AxisAlignedBB size = AxisAlignedBB.ofSize(d, d, d);
 
-            for (ServerPlayerEntity player : parent.getPlayers())
+            List<ServerPlayerEntity> players = parent.players();
+            int wrap = Math.min(players.size(), 20);
+            for (ServerPlayerEntity player : players)
             {
-                if (((player.getEntityId() + ticks) % 20) == 0 && !player.isSpectator())
+                if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
                 {
-                    List<EyesEntity> entities = parent.getEntitiesWithinAABB(EyesEntity.TYPE, size.offset(player.getPositionVec()), e -> !e.countsTowardSpawnCap() && e.getDistance(player) <= ConfigData.maxEyesSpawnDistance);
+                    List<EyesEntity> entities = parent.getEntities(EyesEntity.TYPE, size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceTo(player) <= ConfigData.maxEyesSpawnDistance);
                     if (entities.size() < maxEyesAroundPlayer)
                     {
-                        spawnOneAround(player.getPositionVec(), player, d);
+                        spawnOneAround(player.position(), player, d);
                     }
                 }
             }
@@ -224,21 +246,21 @@ public class EyesSpawningManager
 
         for(int i=0;i<100;i++)
         {
-            double sX = parent.rand.nextFloat() * d + positionVec.getX();
-            double sZ = parent.rand.nextFloat() * d + positionVec.getZ();
+            double sX = parent.random.nextFloat() * d + positionVec.x();
+            double sZ = parent.random.nextFloat() * d + positionVec.z();
 
-            pos.setPos(sX, 0, sZ);
+            pos.set(sX, 0, sZ);
 
-            int maxY = parent.getHeight(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getY());
+            int maxY = parent.getHeight(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
 
-            double sY = MathHelper.clamp(parent.rand.nextFloat() * d + positionVec.getY(), 0, maxY);
+            double sY = MathHelper.clamp(parent.random.nextFloat() * d + positionVec.y(), 0, maxY);
             pos.setY((int) sY);
 
             double pX = pos.getX() + 0.5D;
             double pY = pos.getY();
             double pZ = pos.getZ() + 0.5D;
 
-            double distanceSq = player.getDistanceSq(pX, pY, pZ);
+            double distanceSq = player.distanceToSqr(pX, pY, pZ);
             if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesEntity.TYPE, pos, distanceSq))
             {
                 EyesEntity entity = EyesEntity.TYPE.create(parent, null, null, null, pos, SpawnReason.NATURAL, false, false);
@@ -246,14 +268,9 @@ public class EyesSpawningManager
                     continue;
 
                 int canSpawn = net.minecraftforge.common.ForgeHooks.canEntitySpawn(entity, parent, pX, pY, pZ, null, SpawnReason.NATURAL);
-                if (canSpawn != -1 && (canSpawn == 1 || entity.canSpawn(parent, SpawnReason.NATURAL) && entity.isNotColliding(parent)))
+                if (canSpawn != -1 && (canSpawn == 1 || entity.checkSpawnRules(parent, SpawnReason.NATURAL) && entity.checkSpawnObstruction(parent)))
                 {
-                    parent.addEntity(entity);
-
-                    entity.addPotionEffect(new EffectInstance(Effects.GLOWING, 2000));
-
-
-                    LOGGER.info("Spawn succeeded after {} tries.", i);
+                    parent.addFreshEntity(entity);
 
                     return;
                 }
@@ -261,14 +278,12 @@ public class EyesSpawningManager
                 entity.remove();
             }
         }
-
-        LOGGER.info("Spawn failed.");
     }
 
     private static boolean isValidSpawnSpot(ServerWorld serverWorld, EntityType<?> entityType, BlockPos pos, double sqrDistanceToClosestPlayer)
     {
-        int instantDespawnDistance = entityType.getClassification().getInstantDespawnDistance();
-        if (!entityType.func_225437_d() && sqrDistanceToClosestPlayer > (instantDespawnDistance * instantDespawnDistance))
+        int instantDespawnDistance = entityType.getCategory().getDespawnDistance();
+        if (!entityType.canSpawnFarFromPlayer() && sqrDistanceToClosestPlayer > (instantDespawnDistance * instantDespawnDistance))
         {
             return false;
         }
@@ -278,7 +293,7 @@ public class EyesSpawningManager
             return false;
         }
 
-        return EntitySpawnPlacementRegistry.canSpawnEntity(entityType, serverWorld, SpawnReason.NATURAL, pos, serverWorld.rand)
-                && serverWorld.hasNoCollisions(entityType.getBoundingBoxWithSizeApplied(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
+        return EntitySpawnPlacementRegistry.checkSpawnRules(entityType, serverWorld, SpawnReason.NATURAL, pos, serverWorld.random)
+                && serverWorld.noCollision(entityType.getAABB(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
     }
 }

@@ -3,6 +3,7 @@ package gigaherz.eyes.entity;
 import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.InitiateJumpscarePacket;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.material.PushReaction;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -14,6 +15,7 @@ import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -29,7 +31,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.LightType;
@@ -41,16 +42,17 @@ import net.minecraftforge.registries.ObjectHolder;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Random;
 import java.util.function.DoubleSupplier;
+
+import net.minecraft.entity.ai.goal.Goal.Flag;
 
 public class EyesEntity extends MonsterEntity
 {
     @ObjectHolder("eyesinthedarkness:eyes")
     public static EntityType<EyesEntity> TYPE = null;
 
-    private static final DataParameter<Boolean> IS_DORMANT = EntityDataManager.createKey(EyesEntity.class, DataSerializers.BOOLEAN);
-    private static final DataParameter<Float> AGGRO = EntityDataManager.createKey(EyesEntity.class, DataSerializers.FLOAT);
+    private static final DataParameter<Boolean> IS_DORMANT = EntityDataManager.defineId(EyesEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Float> AGGRO = EntityDataManager.defineId(EyesEntity.class, DataSerializers.FLOAT);
 
     private static final float AGGRO_ESCALATION_PER_TICK = 1f / (20 * 60 * 5); // 300 seconds to reach max (5 minutes)
 
@@ -66,16 +68,16 @@ public class EyesEntity extends MonsterEntity
 
     public static AttributeModifierMap.MutableAttribute prepareAttributes()
     {
-        return MonsterEntity.func_234295_eP_()
-                .createMutableAttribute(Attributes.MAX_HEALTH, 1.0D);
+        return MonsterEntity.createMonsterAttributes()
+                .add(Attributes.MAX_HEALTH, 1.0D);
     }
 
     @Override
-    protected void registerData()
+    protected void defineSynchedData()
     {
-        super.registerData();
-        this.dataManager.register(AGGRO, 0.1f);
-        this.dataManager.register(IS_DORMANT, false);
+        super.defineSynchedData();
+        this.entityData.define(AGGRO, 0.1f);
+        this.entityData.define(IS_DORMANT, false);
     }
 
     @Override
@@ -88,22 +90,22 @@ public class EyesEntity extends MonsterEntity
 
     public float getAggroLevel()
     {
-        return this.getDataManager().get(AGGRO);
+        return this.getEntityData().get(AGGRO);
     }
 
     public void setAggroLevel(float aggro)
     {
-        this.getDataManager().set(AGGRO, MathHelper.clamp(aggro, 0, 1));
+        this.getEntityData().set(AGGRO, MathHelper.clamp(aggro, 0, 1));
     }
 
     public boolean getIsDormant()
     {
-        return this.getDataManager().get(IS_DORMANT);
+        return this.getEntityData().get(IS_DORMANT);
     }
 
     public void setIsDormant(boolean value)
     {
-        this.getDataManager().set(IS_DORMANT, value);
+        this.getEntityData().set(IS_DORMANT, value);
     }
 
     private double getSpeedFromAggro()
@@ -115,18 +117,30 @@ public class EyesEntity extends MonsterEntity
 
     @Nullable
     @Override
-    public ILivingEntityData onInitialSpawn(IServerWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason, @Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag)
+    public ILivingEntityData finalizeSpawn(IServerWorld worldIn, DifficultyInstance difficultyIn, SpawnReason reason, @Nullable ILivingEntityData spawnDataIn, @Nullable CompoundNBT dataTag)
     {
         if (ConfigData.eyeAggressionDependsOnLocalDifficulty)
         {
-            float difficulty = difficultyIn.getClampedAdditionalDifficulty();
-            setAggroLevel(world.rand.nextFloat() * difficulty);
+            float difficulty = difficultyIn.getSpecialMultiplier();
+            setAggroLevel(level.random.nextFloat() * difficulty);
         }
-        return super.onInitialSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
     }
 
     @Override
-    public boolean attackEntityAsMob(Entity entityIn)
+    public void readAdditionalSaveData(CompoundNBT compound)
+    {
+        super.readAdditionalSaveData(compound);
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundNBT compound)
+    {
+        super.addAdditionalSaveData(compound);
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity entityIn)
     {
         boolean jumpScared = ConfigData.jumpscare && entityIn instanceof ServerPlayerEntity;
         if (jumpScared)
@@ -137,7 +151,7 @@ public class EyesEntity extends MonsterEntity
         if (ConfigData.jumpscareHurtLevel > 0 && entityIn instanceof LivingEntity)
         {
             LivingEntity living = (LivingEntity) entityIn;
-            living.addPotionEffect(new EffectInstance(Effects.POISON, 5 * 20, ConfigData.jumpscareHurtLevel - 1));
+            living.addEffect(new EffectInstance(Effects.POISON, 5 * 20, ConfigData.jumpscareHurtLevel - 1));
         }
 
         // Don't play the disappear laugh if we initiated a jumpscare.
@@ -147,22 +161,22 @@ public class EyesEntity extends MonsterEntity
 
     public void jumpscare(ServerPlayerEntity player)
     {
-        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getPosX(), this.getPosY(), this.getPosZ()), player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()), player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
     }
 
     @Override
-    public void livingTick()
+    public void aiStep()
     {
-        super.livingTick();
+        super.aiStep();
 
-        if (world.isRemote)
+        if (level.isClientSide)
         {
             if (getIsDormant())
                 return;
 
             if (!blinkingState)
             {
-                if (world.rand.nextFloat() < .02f)
+                if (level.random.nextFloat() < .02f)
                 {
                     blinkingState = true;
                     blinkProgress = 0;
@@ -186,7 +200,7 @@ public class EyesEntity extends MonsterEntity
 
         float maxWatchDistance = 16;
         Vector3d eyes = getEyePosition(1);
-        List<PlayerEntity> entities = world.getEntitiesWithinAABB(PlayerEntity.class,
+        List<PlayerEntity> entities = level.getEntitiesOfClass(PlayerEntity.class,
                 new AxisAlignedBB(eyes.x - maxWatchDistance, eyes.y - maxWatchDistance, eyes.z - maxWatchDistance,
                         eyes.x + maxWatchDistance, eyes.y + maxWatchDistance, eyes.z + maxWatchDistance), (player) -> {
 
@@ -196,12 +210,12 @@ public class EyesEntity extends MonsterEntity
                     if (player.getEyePosition(1).distanceTo(eyes) > maxWatchDistance)
                         return false;
 
-                    Vector3d vec3d = player.getLook(1.0F).normalize();
-                    Vector3d vec3d1 = new Vector3d(this.getPosX() - player.getPosX(), this.getBoundingBox().minY + (double) this.getEyeHeight() - (player.getPosY() + (double) player.getEyeHeight()), this.getPosZ() - player.getPosZ());
+                    Vector3d vec3d = player.getViewVector(1.0F).normalize();
+                    Vector3d vec3d1 = new Vector3d(this.getX() - player.getX(), this.getBoundingBox().minY + (double) this.getEyeHeight() - (player.getY() + (double) player.getEyeHeight()), this.getZ() - player.getZ());
                     double d0 = vec3d1.length();
                     vec3d1 = vec3d1.normalize();
-                    double d1 = vec3d.dotProduct(vec3d1);
-                    return (d1 > 1.0D - 0.025D / d0) && player.canEntityBeSeen(this);
+                    double d1 = vec3d.dot(vec3d1);
+                    return (d1 > 1.0D - 0.025D / d0) && player.canSee(this);
                 });
 
         if (entities.size() > 0)
@@ -217,31 +231,31 @@ public class EyesEntity extends MonsterEntity
     }
 
     @Override
-    public boolean isEntityUndead()
+    public boolean isInvertedHealAndHarm()
     {
         return true;
     }
 
     @Override
-    public boolean canBeCollidedWith()
+    public boolean isPickable()
     {
         return false;
     }
 
     @Override
-    public boolean canBePushed()
+    public boolean isPushable()
     {
         return false;
     }
 
     @Override
-    public void applyEntityCollision(Entity entityIn)
+    public void push(Entity entityIn)
     {
         //super.applyEntityCollision(entityIn);
     }
 
     @Override
-    protected void collideWithEntity(Entity entityIn)
+    protected void doPush(Entity entityIn)
     {
         if (getIsDormant())
             return;
@@ -255,10 +269,10 @@ public class EyesEntity extends MonsterEntity
 
     private void disappear(boolean playDeathSound)
     {
-        damageEntity(DamageSource.GENERIC, 1);
+        actuallyHurt(DamageSource.GENERIC, 1);
         if (playDeathSound)
         {
-            this.playSound(getDeathSound(), this.getDisappearVolume(), this.getSoundPitch());
+            this.playSound(getDeathSound(), this.getDisappearVolume(), this.getVoicePitch());
         }
     }
 
@@ -274,22 +288,22 @@ public class EyesEntity extends MonsterEntity
     }
 
     @Override
-    protected void collideWithNearbyEntities()
+    protected void pushEntities()
     {
-        super.collideWithNearbyEntities();
+        super.pushEntities();
     }
 
     @Override
-    public PushReaction getPushReaction()
+    public PushReaction getPistonPushReaction()
     {
         return PushReaction.IGNORE;
     }
 
     @Override
-    protected void onDeathUpdate()
+    protected void tickDeath()
     {
         deathTime = 19;
-        super.onDeathUpdate();
+        super.tickDeath();
     }
 
     @Nullable
@@ -319,23 +333,23 @@ public class EyesEntity extends MonsterEntity
      */
     public BlockPos getBlockPosEyes()
     {
-        return new BlockPos(this.getPosX(), this.getPosY() + getEyeHeight(), this.getPosZ());
+        return new BlockPos(this.getX(), this.getY() + getEyeHeight(), this.getZ());
     }
 
     @Override
-    public IPacket<?> createSpawnPacket()
+    public IPacket<?> getAddEntityPacket()
     {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public float getSunBrightness()
     {
-        float angleRadians = world.getCelestialAngleRadians(1);
+        float angleRadians = level.getSunAngle(1);
         float f1 = 1.0F - (MathHelper.cos(angleRadians) * 2.0F + 0.2F);
         f1 = MathHelper.clamp(f1, 0.0F, 1.0F);
         f1 = 1.0F - f1;
-        f1 = (float) ((double) f1 * (1.0D - (double) (world.getRainStrength(1) * 5.0F) / 16.0D));
-        f1 = (float) ((double) f1 * (1.0D - (double) (world.getThunderStrength(1) * 5.0F) / 16.0D));
+        f1 = (float) ((double) f1 * (1.0D - (double) (level.getRainLevel(1) * 5.0F) / 16.0D));
+        f1 = (float) ((double) f1 * (1.0D - (double) (level.getThunderLevel(1) * 5.0F) / 16.0D));
         return f1 * 0.8F + 0.2F;
     }
 
@@ -345,12 +359,12 @@ public class EyesEntity extends MonsterEntity
         float blockLight = 0;
         if (excludeDaylight)
         {
-            if (world.getDimensionType().hasSkyLight())
+            if (level.dimensionType().hasSkyLight())
             {
-                float skyLight = world.getLightFor(LightType.SKY, position)
+                float skyLight = level.getBrightness(LightType.SKY, position)
                         - (1 - getSunBrightness()) * 11;
-                float skyLight1 = world.getLightFor(LightType.SKY, position)
-                        - world.getSkylightSubtracted();
+                float skyLight1 = level.getBrightness(LightType.SKY, position)
+                        - level.getSkyDarken();
 
                 if (skyLight != skyLight1)
                 {
@@ -362,7 +376,7 @@ public class EyesEntity extends MonsterEntity
         }
         else
         {
-            blockLight = world.getLight(position);
+            blockLight = level.getMaxLocalRawBrightness(position);
         }
         return blockLight;
     }
@@ -375,7 +389,7 @@ public class EyesEntity extends MonsterEntity
 
     public boolean countsTowardSpawnCap()
     {
-        return preventDespawn() || isNoDespawnRequired();
+        return requiresCustomPersistence() || isPersistenceRequired();
     }
 
     @Override
@@ -399,7 +413,7 @@ public class EyesEntity extends MonsterEntity
         public CreepTowardPlayer(EyesEntity creature, DoubleSupplier speedGetter)
         {
             this.attacker = creature;
-            this.setMutexFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
             this.speedGetter = speedGetter;
             eyes = creature;
         }
@@ -408,12 +422,12 @@ public class EyesEntity extends MonsterEntity
          * Returns whether the EntityAIBase should begin execution.
          */
         @Override
-        public boolean shouldExecute()
+        public boolean canUse()
         {
             if (eyes.getIsDormant())
                 return false;
 
-            LivingEntity targetPlayer = this.attacker.getAttackTarget();
+            LivingEntity targetPlayer = this.attacker.getTarget();
             if (targetPlayer == null || !targetPlayer.isAlive())
             {
                 return false;
@@ -422,22 +436,22 @@ public class EyesEntity extends MonsterEntity
             if (isPlayerLookingInMyGeneralDirection())
                 return false;
 
-            this.path = this.attacker.getNavigator().pathfind(targetPlayer, 0);
+            this.path = this.attacker.getNavigation().createPath(targetPlayer, 0);
             return this.path != null || isWithinRange(targetPlayer);
         }
 
         /**
          * Execute a one shot task or start executing a continuous task
          */
-        public void startExecuting()
+        public void start()
         {
-            this.attacker.getNavigator().setPath(this.path, this.speedGetter.getAsDouble());
-            this.attacker.setAggroed(true);
+            this.attacker.getNavigation().moveTo(this.path, this.speedGetter.getAsDouble());
+            this.attacker.setAggressive(true);
             this.delayCounter = 0;
         }
 
         @Override
-        public boolean shouldContinueExecuting()
+        public boolean canContinueToUse()
         {
             if (eyes.getIsDormant())
                 return false;
@@ -445,17 +459,17 @@ public class EyesEntity extends MonsterEntity
             if (isPlayerLookingInMyGeneralDirection())
                 return false;
 
-            LivingEntity livingentity = this.attacker.getAttackTarget();
+            LivingEntity livingentity = this.attacker.getTarget();
 
             if (livingentity == null || !livingentity.isAlive())
                 return false;
 
-            return !this.attacker.getNavigator().noPath();
+            return !this.attacker.getNavigation().isDone();
         }
 
         private boolean isWithinRange(LivingEntity targetPlayer)
         {
-            return this.getAttackReachSqr(targetPlayer) >= this.attacker.getDistanceSq(targetPlayer.getPosX(), targetPlayer.getBoundingBox().minY, targetPlayer.getPosZ());
+            return this.getAttackReachSqr(targetPlayer) >= this.attacker.distanceToSqr(targetPlayer.getX(), targetPlayer.getBoundingBox().minY, targetPlayer.getZ());
         }
 
         private boolean isPlayerLookingInMyGeneralDirection()
@@ -463,34 +477,34 @@ public class EyesEntity extends MonsterEntity
             if (eyes.getIsDormant())
                 return false;
 
-            Vector3d selfPos = eyes.getPositionVec();
-            LivingEntity target = eyes.getAttackTarget();
+            Vector3d selfPos = eyes.position();
+            LivingEntity target = eyes.getTarget();
             if (target == null)
                 return false;
-            Vector3d playerPos = target.getPositionVec();
-            Vector3d lookVec = target.getLookVec();
+            Vector3d playerPos = target.position();
+            Vector3d lookVec = target.getLookAngle();
             Vector3d playerLook = new Vector3d(lookVec.x, lookVec.y, lookVec.z);
             playerLook.normalize();
 
             playerPos.subtract(selfPos);
             playerPos.normalize();
 
-            return playerLook.dotProduct(playerPos) < 0;
+            return playerLook.dot(playerPos) < 0;
         }
 
         /**
          * Reset the task's internal state. Called when this task is interrupted by another one
          */
-        public void resetTask()
+        public void stop()
         {
-            LivingEntity livingentity = this.attacker.getAttackTarget();
-            if (!EntityPredicates.CAN_AI_TARGET.test(livingentity))
+            LivingEntity livingentity = this.attacker.getTarget();
+            if (!EntityPredicates.NO_CREATIVE_OR_SPECTATOR.test(livingentity))
             {
-                this.attacker.setAttackTarget(null);
+                this.attacker.setTarget(null);
             }
 
-            this.attacker.setAggroed(false);
-            this.attacker.getNavigator().clearPath();
+            this.attacker.setAggressive(false);
+            this.attacker.getNavigation().stop();
         }
 
         /**
@@ -498,20 +512,20 @@ public class EyesEntity extends MonsterEntity
          */
         public void tick()
         {
-            LivingEntity targetPlayer = this.attacker.getAttackTarget();
-            this.attacker.getLookController().setLookPositionWithEntity(targetPlayer, 30.0F, 30.0F);
-            double distanceSquared = this.attacker.getDistanceSq(targetPlayer.getPosX(), targetPlayer.getBoundingBox().minY, targetPlayer.getPosZ());
+            LivingEntity targetPlayer = this.attacker.getTarget();
+            this.attacker.getLookControl().setLookAt(targetPlayer, 30.0F, 30.0F);
+            double distanceSquared = this.attacker.distanceToSqr(targetPlayer.getX(), targetPlayer.getBoundingBox().minY, targetPlayer.getZ());
             --this.delayCounter;
-            if (this.attacker.getEntitySenses().canSee(targetPlayer)
+            if (this.attacker.getSensing().canSee(targetPlayer)
                     && this.delayCounter <= 0
                     && (this.targetX == 0.0D && this.targetY == 0.0D && this.targetZ == 0.0D
-                    || targetPlayer.getDistanceSq(this.targetX, this.targetY, this.targetZ) >= 1.0D
-                    || this.attacker.getRNG().nextFloat() < 0.05F))
+                    || targetPlayer.distanceToSqr(this.targetX, this.targetY, this.targetZ) >= 1.0D
+                    || this.attacker.getRandom().nextFloat() < 0.05F))
             {
-                this.targetX = targetPlayer.getPosX();
+                this.targetX = targetPlayer.getX();
                 this.targetY = targetPlayer.getBoundingBox().minY;
-                this.targetZ = targetPlayer.getPosZ();
-                this.delayCounter = 4 + this.attacker.getRNG().nextInt(7);
+                this.targetZ = targetPlayer.getZ();
+                this.delayCounter = 4 + this.attacker.getRandom().nextInt(7);
 
                 if (distanceSquared > 1024.0D)
                 {
@@ -522,7 +536,7 @@ public class EyesEntity extends MonsterEntity
                     this.delayCounter += 5;
                 }
 
-                if (!this.attacker.getNavigator().tryMoveToEntityLiving(targetPlayer, this.speedGetter.getAsDouble()))
+                if (!this.attacker.getNavigation().moveTo(targetPlayer, this.speedGetter.getAsDouble()))
                 {
                     this.delayCounter += 15;
                 }
@@ -538,14 +552,14 @@ public class EyesEntity extends MonsterEntity
             if (distToEnemySqr <= reachSqr && this.attackTick <= 0)
             {
                 this.attackTick = 20;
-                this.attacker.swingArm(Hand.MAIN_HAND);
-                this.attacker.attackEntityAsMob(enemy);
+                this.attacker.swing(Hand.MAIN_HAND);
+                this.attacker.doHurtTarget(enemy);
             }
         }
 
         protected double getAttackReachSqr(LivingEntity attackTarget)
         {
-            return this.attacker.getWidth() * 2.0F * this.attacker.getWidth() * 2.0F + attackTarget.getWidth();
+            return this.attacker.getBbWidth() * 2.0F * this.attacker.getBbWidth() * 2.0F + attackTarget.getBbWidth();
         }
     }
 }

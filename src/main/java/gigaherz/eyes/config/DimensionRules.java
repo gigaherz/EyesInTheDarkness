@@ -1,18 +1,10 @@
 package gigaherz.eyes.config;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.Dimension;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.BiomeDictionary;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 public class DimensionRules
@@ -31,6 +23,8 @@ public class DimensionRules
     {
         for (Rule rule : rules)
         {
+            if (rule == null)
+                continue;
             if (rule.test(world))
                 return rule.allow;
         }
@@ -80,14 +74,14 @@ public class DimensionRules
         public boolean test(ServerWorld world)
         {
             if (name == null)
-                return true;
+                return allow;
             if (isType)
             {
-                return name.equals(world.func_241828_r().func_230520_a_().getKey(world.getDimensionType()));
+                return name.equals(world.registryAccess().dimensionTypes().getKey(world.dimensionType()));
             }
             else
             {
-                return name.equals(world.getDimensionKey().getLocation());
+                return name.equals(world.dimension().location());
             }
         }
     }

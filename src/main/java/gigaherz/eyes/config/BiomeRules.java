@@ -35,9 +35,9 @@ public class BiomeRules
 
     public static boolean isBiomeAllowed(Biome biome)
     {
-        RegistryKey<Biome> key = RegistryKey.getOrCreateKey(Registry.BIOME_KEY, Objects.requireNonNull(biome.getRegistryName()));
-        //RegistryKey<Biome> key = RegistryKey.getOrCreateKey(Registry.BIOME_KEY, world.func_241828_r().getRegistry(Registry.BIOME_KEY).getKey(biome));
-        //RegistryKey<Biome> key = world.func_241828_r().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome).orElseThrow(() -> new IllegalStateException("The Biome did not have a key."));
+        RegistryKey<Biome> key = RegistryKey.create(Registry.BIOME_REGISTRY, Objects.requireNonNull(biome.getRegistryName()));
+        //RegistryKey<Biome> key = RegistryKey.getOrCreateKey(Registry.BIOME_KEY, world.registryAccess().getRegistry(Registry.BIOME_KEY).getKey(biome));
+        //RegistryKey<Biome> key = world.registryAccess().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome).orElseThrow(() -> new IllegalStateException("The Biome did not have a key."));
         return isBiomeAllowed(key);
     }
 
@@ -101,14 +101,14 @@ public class BiomeRules
         public boolean test(RegistryKey<Biome> biome)
         {
             if (labelName == null)
-                return true;
+                return allow;
             if (isLabel)
             {
                 return BiomeDictionary.hasType(biome, labelType);
             }
             else
             {
-                return registryName.equals(biome.getLocation());
+                return registryName.equals(biome.location());
             }
         }
     }

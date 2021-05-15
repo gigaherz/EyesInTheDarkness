@@ -282,6 +282,6 @@ public class ConfigData
 
     public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, IServerWorld world, SpawnReason reason, BlockPos pos, Random random)
     {
-        return MonsterEntity.canMonsterSpawnInLight(entityType, world, reason, pos, random);
+        return MonsterEntity.checkMonsterSpawnRules(entityType, world, reason, pos, random);
     }
 }
