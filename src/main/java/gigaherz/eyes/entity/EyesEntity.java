@@ -310,7 +310,7 @@ public class EyesEntity extends MonsterEntity
     @Override
     protected SoundEvent getAmbientSound()
     {
-        if (getIsDormant())
+        if (tickCount == 0 || getIsDormant())
             return null;
         return EyesInTheDarkness.eyes_laugh;
     }
