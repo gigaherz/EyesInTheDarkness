@@ -1,8 +1,9 @@
 package gigaherz.eyes.config;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -19,7 +20,7 @@ public class DimensionRules
         rules.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
     }
 
-    public static boolean isDimensionAllowed(ServerWorld world)
+    public static boolean isDimensionAllowed(ServerLevel world)
     {
         for (Rule rule : rules)
         {
@@ -57,7 +58,7 @@ public class DimensionRules
         return new Rule(false, true, label);
     }
 
-    private static class Rule implements Predicate<ServerWorld>
+    private static class Rule implements Predicate<ServerLevel>
     {
         public final boolean allow;
         public final boolean isType;
@@ -71,13 +72,13 @@ public class DimensionRules
         }
 
         @Override
-        public boolean test(ServerWorld world)
+        public boolean test(ServerLevel world)
         {
             if (name == null)
                 return allow;
             if (isType)
             {
-                return name.equals(world.registryAccess().dimensionTypes().getKey(world.dimensionType()));
+                return name.equals(world.registryAccess().registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY).getKey(world.dimensionType()));
             }
             else
             {

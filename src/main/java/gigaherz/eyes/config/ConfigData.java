@@ -3,15 +3,16 @@ package gigaherz.eyes.config;
 import com.google.common.collect.Lists;
 import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IServerWorld;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -224,7 +225,7 @@ public class ConfigData
     private static class ModEventHandler
     {
         @SubscribeEvent
-        public static void configLoading(final ModConfig.ModConfigEvent event)
+        public static void configLoading(final ModConfigEvent event)
         {
             ModConfig config = event.getConfig();
 
@@ -280,8 +281,8 @@ public class ConfigData
         return defaultSupplier.get();
     }
 
-    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, IServerWorld world, SpawnReason reason, BlockPos pos, Random random)
+    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, ServerLevelAccessor world, MobSpawnType reason, BlockPos pos, Random random)
     {
-        return MonsterEntity.checkMonsterSpawnRules(entityType, world, reason, pos, random);
+        return Monster.checkMonsterSpawnRules(entityType, world, reason, pos, random);
     }
 }

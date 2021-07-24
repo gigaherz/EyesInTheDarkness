@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[34,)"
+loaderVersion="[37,)"
 #updateJSONURL=""
 issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
 displayURL="https://github.com/gigaherz/EyesInTheDarkness"
@@ -19,12 +19,12 @@ Those eyes you think you saw when walking through the forest at night. No, you d
 [[dependencies.eyesinthedarkness]]
    modId="forge"
    mandatory=true
-   versionRange="[34.1.22,)"
+   versionRange="[37.0.2,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]
    modId="minecraft"
    mandatory=true
-   versionRange="[1.16.3,1.17)"
+   versionRange="[1.17.1,1.18)"
    ordering="NONE"
    side="BOTH"

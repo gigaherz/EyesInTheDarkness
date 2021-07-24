@@ -1,43 +1,44 @@
 package gigaherz.eyes.client;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.math.Matrix4f;
 import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.EyesInTheDarkness;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraftforge.client.gui.OverlayRegistry;
+import net.minecraftforge.client.model.animation.Animation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.opengl.GL11;
 
-public class JumpscareOverlay extends AbstractGui
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.MOD)
+public class JumpscareOverlay extends GuiComponent implements IIngameOverlay
 {
     private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
     private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
 
     public static JumpscareOverlay INSTANCE = new JumpscareOverlay();
 
-    private boolean visible = false;
-    private float progress = 0;
-
-    private Minecraft mc;
-
-    private static final Rectangle2d[] FRAMES = {
-            new Rectangle2d(0, 0, 13, 6),
-            new Rectangle2d(0, 7, 13, 6),
-            new Rectangle2d(0, 14, 13, 6),
-            new Rectangle2d(0, 21, 13, 6),
-            new Rectangle2d(15, 1, 15, 8),
-            new Rectangle2d(15, 16, 15, 12),
+    private static final Rect2i[] FRAMES = {
+            new Rect2i(0, 0, 13, 6),
+            new Rect2i(0, 7, 13, 6),
+            new Rect2i(0, 14, 13, 6),
+            new Rect2i(0, 21, 13, 6),
+            new Rect2i(15, 1, 15, 8),
+            new Rect2i(15, 16, 15, 12),
     };
     private static final int ANIMATION_APPEAR = 10;
     private static final int ANIMATION_LINGER = 90;
@@ -50,6 +51,16 @@ public class JumpscareOverlay extends AbstractGui
     private static final int ANIMATION_TOTAL = ANIMATION_APPEAR + ANIMATION_LINGER + ANIMATION_BLINK
             + ANIMATION_SCARE1 + ANIMATION_FADE;
 
+    @SubscribeEvent
+    public static void register(FMLClientSetupEvent event)
+    {
+        OverlayRegistry.registerOverlayAbove(ForgeIngameGui.PORTAL_ELEMENT, "Eyes in the Darkness Jumpscare", INSTANCE);
+    }
+
+    private Minecraft mc;
+    private boolean visible = false;
+    private float progress = 0;
+
     private JumpscareOverlay()
     {
         mc = Minecraft.getInstance();
@@ -61,7 +72,7 @@ public class JumpscareOverlay extends AbstractGui
         if (ConfigData.jumpscareClient)
         {
             visible = true;
-            mc.level.playLocalSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundCategory.HOSTILE, getJumpscareVolume(), 1, false);
+            mc.level.playLocalSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundSource.HOSTILE, getJumpscareVolume(), 1, false);
         }
     }
 
@@ -84,19 +95,16 @@ public class JumpscareOverlay extends AbstractGui
         }
     }
 
-    @SubscribeEvent
-    public void overlayEvent(RenderGameOverlayEvent.Pre event)
+
+    @Override
+    public void render(ForgeIngameGui gui, PoseStack poseStack, float partialTicks, int width, int height)
     {
-        if (!visible || event.getType() != RenderGameOverlayEvent.ElementType.ALL)
-            return;
+        if (!visible) return;
 
-        //1.14 : if not canceled, a mini screen of the game will still render while in a jumpscare.
-        event.setCanceled(true);
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
 
-        int screenWidth = event.getWindow().getScreenWidth();
-        int screenHeight = event.getWindow().getScreenHeight();
-
-        float time = progress + event.getPartialTicks();
+        float time = progress + Animation.getPartialTickTime();
         if (time >= ANIMATION_TOTAL)
         {
             visible = false;
@@ -104,16 +112,11 @@ public class JumpscareOverlay extends AbstractGui
             return;
         }
 
-        RenderSystem.pushMatrix();
         RenderSystem.clear(256, false);
-        RenderSystem.matrixMode(5889);
-        RenderSystem.loadIdentity();
-        RenderSystem.ortho(0.0D, screenWidth, screenHeight, 0.0D, 1000.0D, 3000.0D);
-        RenderSystem.matrixMode(5888);
-        RenderSystem.loadIdentity();
-        RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
+        poseStack.pushPose();
+        //poseStack.translatef(0.0F, 0.0F, -2000.0F);
 
-        float darkening = MathHelper.clamp(
+        float darkening = Mth.clamp(
                 Math.min(
                         time / ANIMATION_APPEAR,
                         (ANIMATION_TOTAL - time) / ANIMATION_FADE
@@ -133,12 +136,12 @@ public class JumpscareOverlay extends AbstractGui
             {
                 float fade = Math.max(0, (time - ANIMATION_BLINK_START) / ANIMATION_BLINK);
                 float blinkspeed = (float) (1 + Math.pow(fade, 3));
-                blinkstate = MathHelper.floor(20 * blinkspeed) & 1;
+                blinkstate = Mth.floor(20 * blinkspeed) & 1;
                 showCreep = blinkstate == 1;
             }
         }
 
-        int alpha = MathHelper.floor(darkening * 255);
+        int alpha = Mth.floor(darkening * 255);
 
         if (showCreep)
         {
@@ -148,36 +151,34 @@ public class JumpscareOverlay extends AbstractGui
             float scale1 = screenHeight / (float) texH;
             int drawY = 0;
             int drawH = screenHeight;
-            int drawW = MathHelper.floor(texW * scale1);
+            int drawW = Mth.floor(texW * scale1);
             int drawX = (screenWidth - drawW) / 2;
-            RenderSystem.enableBlend();
-            drawScaledCustomTexture(TEXTURE_FLASH, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
+
+            drawScaledCustomTexture(TEXTURE_FLASH, poseStack, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
         }
         else
         {
             // FIXME
-            MatrixStack temp = new MatrixStack();
+            PoseStack temp = new PoseStack();
             fill(temp, 0, 0, screenWidth, screenHeight, alpha << 24);
-            RenderSystem.color4f(1, 1, 1, 1);
-            RenderSystem.enableBlend();
         }
 
         if (blinkstate != 1)
         {
             float scale = Float.MAX_VALUE;
-            for (Rectangle2d r : FRAMES)
+            for (Rect2i r : FRAMES)
             {
                 float s = Math.min(
-                        MathHelper.floor(screenWidth * 0.8 / (float) r.getWidth()),
-                        MathHelper.floor(screenHeight * 0.8 / (float) r.getHeight()));
+                        Mth.floor(screenWidth * 0.8 / (float) r.getWidth()),
+                        Mth.floor(screenHeight * 0.8 / (float) r.getHeight()));
                 scale = Math.min(scale, s);
             }
 
             scale = Math.min(1, (1 + time) / (1 + ANIMATION_APPEAR)) * scale;
 
-            int currentFrame = Math.min(FRAMES.length - 1, MathHelper.floor(FRAMES.length * time / ANIMATION_APPEAR));
+            int currentFrame = Math.min(FRAMES.length - 1, Mth.floor(FRAMES.length * time / ANIMATION_APPEAR));
 
-            Rectangle2d rect = FRAMES[currentFrame];
+            Rect2i rect = FRAMES[currentFrame];
             int tx = rect.getX();
             int ty = rect.getY();
             int tw = rect.getWidth();
@@ -190,58 +191,61 @@ public class JumpscareOverlay extends AbstractGui
 
             float texW = 32;
             float texH = 32;
-            drawScaledCustomTexture(TEXTURE_EYES, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
+            drawScaledCustomTexture(TEXTURE_EYES, poseStack, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
         }
 
-        RenderSystem.popMatrix();
+        poseStack.popPose();
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
+    private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
     {
-        mc.textureManager.bind(tex);
+        RenderSystem.enableBlend();
+        RenderSystem.disableTexture();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, tex);
 
-        Tessellator tessellator = Tessellator.getInstance();
+        Matrix4f matrix = poseStack.last().pose();
+
+        Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-
-        buffer.vertex(targetX, targetY, 0)
-                .uv(tx / texW, ty / texH).endVertex();
-        buffer.vertex(targetX, targetY + targetH, 0)
-                .uv(tx / texW, (ty + th) / texH).endVertex();
-        buffer.vertex(targetX + targetW, targetY + targetH, 0)
-                .uv((tx + tw) / texW, (ty + th) / texH).endVertex();
-        buffer.vertex(targetX + targetW, targetY, 0)
-                .uv((tx + tw) / texW, ty / texH).endVertex();
-
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.vertex(matrix, targetX, targetY, 0).uv(tx / texW, ty / texH).endVertex();
+        buffer.vertex(matrix, targetX, targetY + targetH, 0).uv(tx / texW, (ty + th) / texH).endVertex();
+        buffer.vertex(matrix, targetX + targetW, targetY + targetH, 0).uv((tx + tw) / texW, (ty + th) / texH).endVertex();
+        buffer.vertex(matrix, targetX + targetW, targetY, 0).uv((tx + tw) / texW, ty / texH).endVertex();
         tessellator.end();
+
+        RenderSystem.enableTexture();
+        RenderSystem.disableBlend();
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
+    private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
     {
         int a = (color >> 24) & 255;
         int r = (color >> 16) & 255;
         int g = (color >> 8) & 255;
         int b = (color >> 0) & 255;
 
-        mc.textureManager.bind(tex);
+        RenderSystem.enableBlend();
+        RenderSystem.enableTexture();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, tex);
 
-        Tessellator tessellator = Tessellator.getInstance();
+        Matrix4f matrix = poseStack.last().pose();
+
+        Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
-
-        buffer.vertex(targetX, targetY, 0)
-                .uv(tx / texW, ty / texH)
-                .color(r, g, b, a).endVertex();
-        buffer.vertex(targetX, targetY + targetH, 0)
-                .uv(tx / texW, (ty + th) / texH)
-                .color(r, g, b, a).endVertex();
-        buffer.vertex(targetX + targetW, targetY + targetH, 0)
-                .uv((tx + tw) / texW, (ty + th) / texH)
-                .color(r, g, b, a).endVertex();
-        buffer.vertex(targetX + targetW, targetY, 0)
-                .uv((tx + tw) / texW, ty / texH)
-                .color(r, g, b, a).endVertex();
-
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        buffer.vertex(matrix, targetX, targetY, 0).uv(tx / texW, ty / texH).color(r, g, b, a).endVertex();
+        buffer.vertex(matrix, targetX, targetY + targetH, 0).uv(tx / texW, (ty + th) / texH).color(r, g, b, a).endVertex();
+        buffer.vertex(matrix, targetX + targetW, targetY + targetH, 0).uv((tx + tw) / texW, (ty + th) / texH).color(r, g, b, a).endVertex();
+        buffer.vertex(matrix, targetX + targetW, targetY, 0).uv((tx + tw) / texW, ty / texH).color(r, g, b, a).endVertex();
         tessellator.end();
+
+        RenderSystem.disableBlend();
     }
 }

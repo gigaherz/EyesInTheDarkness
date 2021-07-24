@@ -2,20 +2,20 @@ package gigaherz.eyes;
 
 import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntitySpawnPlacementRegistry;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
-import net.minecraft.entity.passive.OcelotEntity;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.event.RegistryEvent;
@@ -27,9 +27,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.fmllegacy.network.NetworkDirection;
+import net.minecraftforge.fmllegacy.network.NetworkRegistry;
+import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ObjectHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +38,7 @@ import org.apache.logging.log4j.Logger;
 public class EyesInTheDarkness
 {
     // Needed to keep a dedicated spawn cap for the eyes.
-    public static final EntityClassification CLASSIFICATION = EntityClassification.create("EITD_EYES", "eitd_eyes", 15, false, false, 64);
+    public static final MobCategory CLASSIFICATION = MobCategory.create("EITD_EYES", "eitd_eyes", 15, false, false, 64);
 
     public static final String MODID = "eyesinthedarkness";
 
@@ -103,10 +103,10 @@ public class EyesInTheDarkness
                 eyesInit.get().setRegistryName(MODID + ":eyes")
         );
 
-        EntitySpawnPlacementRegistry.register(
+        SpawnPlacements.register(
                 eyesInit.get(),
-                EntitySpawnPlacementRegistry.PlacementType.NO_RESTRICTIONS,
-                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                SpawnPlacements.Type.NO_RESTRICTIONS,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 ConfigData::canEyesSpawnAt);
     }
 
@@ -118,7 +118,7 @@ public class EyesInTheDarkness
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         event.getRegistry().registerAll(
-                new SpawnEggItem(eyesInit.get(), 0x000000, 0x7F0000, new Item.Properties().tab(ItemGroup.TAB_MISC)).setRegistryName(location("eyes_spawn_egg"))
+                new SpawnEggItem(eyesInit.get(), 0x000000, 0x7F0000, new Item.Properties().tab(CreativeModeTab.TAB_MISC)).setRegistryName(location("eyes_spawn_egg"))
         );
     }
 
@@ -136,15 +136,15 @@ public class EyesInTheDarkness
     public void entityInit(EntityJoinWorldEvent event)
     {
         Entity e = event.getEntity();
-        if (e instanceof WolfEntity)
+        if (e instanceof Wolf)
         {
-            WolfEntity wolf = (WolfEntity) e;
+            Wolf wolf = (Wolf) e;
             wolf.targetSelector.addGoal(5,
                     new NearestAttackableTargetGoal<>(wolf, EyesEntity.class, false));
         }
-        if (e instanceof OcelotEntity)
+        if (e instanceof Ocelot)
         {
-            OcelotEntity cat = (OcelotEntity) e;
+            Ocelot cat = (Ocelot) e;
             cat.goalSelector.addGoal(3, new AvoidEntityGoal<>(cat, EyesEntity.class, 6.0F, 1.0D, 1.2D));
         }
     }

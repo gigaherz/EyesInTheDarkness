@@ -1,24 +1,25 @@
 package gigaherz.eyes;
 
 import com.google.common.base.Stopwatch;
+import com.mojang.math.Vector3f;
 import gigaherz.eyes.config.BiomeRules;
 import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.config.DimensionRules;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.entity.*;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.World;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.server.ServerChunkProvider;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.Tag;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -27,7 +28,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,6 +39,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
 
 public class EyesSpawningManager
 {
@@ -50,36 +55,20 @@ public class EyesSpawningManager
 
     public static void init()
     {
-        CapabilityManager.INSTANCE.register(EyesSpawningManager.class, new Capability.IStorage<EyesSpawningManager>()
-        {
-            @Nullable
-            @Override
-            public INBT writeNBT(Capability<EyesSpawningManager> capability, EyesSpawningManager instance, Direction side)
-            {
-                throw new IllegalStateException("Serialization not supported on this object.");
-            }
+        CapabilityManager.INSTANCE.register(EyesSpawningManager.class);
 
-            @Override
-            public void readNBT(Capability<EyesSpawningManager> capability, EyesSpawningManager instance, Direction side, INBT nbt)
-            {
-                throw new IllegalStateException("Serialization not supported on this object.");
-            }
-        }, () -> {
-            throw new IllegalStateException("Default instance factory not supported on this object.");
-        });
-
-        MinecraftForge.EVENT_BUS.addGenericListener(World.class, EyesSpawningManager::onCapabilityAttach);
+        MinecraftForge.EVENT_BUS.addGenericListener(Level.class, EyesSpawningManager::onCapabilityAttach);
         MinecraftForge.EVENT_BUS.addListener(EyesSpawningManager::onWorldTick);
     }
 
-    private static void onCapabilityAttach(AttachCapabilitiesEvent<World> event)
+    private static void onCapabilityAttach(AttachCapabilitiesEvent<Level> event)
     {
-        World eventWorld = event.getObject();
-        if (eventWorld instanceof ServerWorld)
+        Level eventWorld = event.getObject();
+        if (eventWorld instanceof ServerLevel)
         {
             event.addCapability(CAP_KEY, new ICapabilityProvider()
             {
-                final ServerWorld world = (ServerWorld) eventWorld;
+                final ServerLevel world = (ServerLevel) eventWorld;
                 final LazyOptional<EyesSpawningManager> supplier = LazyOptional.of(() -> new EyesSpawningManager(world));
 
                 @Nonnull
@@ -101,12 +90,12 @@ public class EyesSpawningManager
     }
 
     private final Stopwatch watch = Stopwatch.createUnstarted();
-    private final ServerWorld parent;
-    private final ServerChunkProvider chunkSource;
+    private final ServerLevel parent;
+    private final ServerChunkCache chunkSource;
     private int cooldown;
     private int ticks;
 
-    private EyesSpawningManager(ServerWorld world)
+    private EyesSpawningManager(ServerLevel world)
     {
         this.parent = world;
         this.chunkSource = parent.getChunkSource();
@@ -135,7 +124,7 @@ public class EyesSpawningManager
         return Math.abs(hour * 24 + minute);
     }
 
-    private static final Field f_spawnEnemies = ObfuscationReflectionHelper.findField(ServerChunkProvider.class, "field_217246_l");
+    private static final Field f_spawnEnemies = ObfuscationReflectionHelper.findField(ServerChunkCache.class, "f_8335_");
     private boolean isEnemySpawnEnabled()
     {
         try
@@ -185,11 +174,11 @@ public class EyesSpawningManager
             }
 
             float d = ConfigData.maxEyesSpawnDistance;
-            AxisAlignedBB size = AxisAlignedBB.ofSize(d, d, d);
+            AABB size = AABB.ofSize(Vec3.ZERO, d, d, d);
 
-            List<ServerPlayerEntity> players = parent.players();
+            List<ServerPlayer> players = parent.players();
             int wrap = Math.min(players.size(), 20);
-            for (ServerPlayerEntity player : players)
+            for (ServerPlayer player : players)
             {
                 if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
                 {
@@ -238,11 +227,11 @@ public class EyesSpawningManager
         return normal + valueByDate + valueByTime;
     }
 
-    private void spawnOneAround(Vector3d positionVec, ServerPlayerEntity player, float d)
+    private void spawnOneAround(Vec3 positionVec, ServerPlayer player, float d)
     {
         float dSqr = d*d;
 
-        BlockPos.Mutable pos = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for(int i=0;i<100;i++)
         {
@@ -251,9 +240,9 @@ public class EyesSpawningManager
 
             pos.set(sX, 0, sZ);
 
-            int maxY = parent.getHeight(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+            int maxY = parent.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
 
-            double sY = MathHelper.clamp(parent.random.nextFloat() * d + positionVec.y(), 0, maxY);
+            double sY = Mth.clamp(parent.random.nextFloat() * d + positionVec.y(), 0, maxY);
             pos.setY((int) sY);
 
             double pX = pos.getX() + 0.5D;
@@ -263,24 +252,24 @@ public class EyesSpawningManager
             double distanceSq = player.distanceToSqr(pX, pY, pZ);
             if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesEntity.TYPE, pos, distanceSq))
             {
-                EyesEntity entity = EyesEntity.TYPE.create(parent, null, null, null, pos, SpawnReason.NATURAL, false, false);
+                EyesEntity entity = EyesEntity.TYPE.create(parent, null, null, null, pos, MobSpawnType.NATURAL, false, false);
                 if (entity == null)
                     continue;
 
-                int canSpawn = net.minecraftforge.common.ForgeHooks.canEntitySpawn(entity, parent, pX, pY, pZ, null, SpawnReason.NATURAL);
-                if (canSpawn != -1 && (canSpawn == 1 || entity.checkSpawnRules(parent, SpawnReason.NATURAL) && entity.checkSpawnObstruction(parent)))
+                int canSpawn = net.minecraftforge.common.ForgeHooks.canEntitySpawn(entity, parent, pX, pY, pZ, null, MobSpawnType.NATURAL);
+                if (canSpawn != -1 && (canSpawn == 1 || entity.checkSpawnRules(parent, MobSpawnType.NATURAL) && entity.checkSpawnObstruction(parent)))
                 {
                     parent.addFreshEntity(entity);
 
                     return;
                 }
 
-                entity.remove();
+                entity.discard();
             }
         }
     }
 
-    private static boolean isValidSpawnSpot(ServerWorld serverWorld, EntityType<?> entityType, BlockPos pos, double sqrDistanceToClosestPlayer)
+    private static boolean isValidSpawnSpot(ServerLevel serverWorld, EntityType<?> entityType, BlockPos pos, double sqrDistanceToClosestPlayer)
     {
         int instantDespawnDistance = entityType.getCategory().getDespawnDistance();
         if (!entityType.canSpawnFarFromPlayer() && sqrDistanceToClosestPlayer > (instantDespawnDistance * instantDespawnDistance))
@@ -293,7 +282,7 @@ public class EyesSpawningManager
             return false;
         }
 
-        return EntitySpawnPlacementRegistry.checkSpawnRules(entityType, serverWorld, SpawnReason.NATURAL, pos, serverWorld.random)
+        return SpawnPlacements.checkSpawnRules(entityType, serverWorld, MobSpawnType.NATURAL, pos, serverWorld.random)
                 && serverWorld.noCollision(entityType.getAABB(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
     }
 }

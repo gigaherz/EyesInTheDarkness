@@ -1,10 +1,10 @@
 package gigaherz.eyes.config;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class BiomeRules
         rules.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
     }
 
-    public static boolean isBiomeAllowed(RegistryKey<Biome> key)
+    public static boolean isBiomeAllowed(ResourceKey<Biome> key)
     {
         for (Rule rule : rules)
         {
@@ -35,7 +35,7 @@ public class BiomeRules
 
     public static boolean isBiomeAllowed(Biome biome)
     {
-        RegistryKey<Biome> key = RegistryKey.create(Registry.BIOME_REGISTRY, Objects.requireNonNull(biome.getRegistryName()));
+        ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, Objects.requireNonNull(biome.getRegistryName()));
         //RegistryKey<Biome> key = RegistryKey.getOrCreateKey(Registry.BIOME_KEY, world.registryAccess().getRegistry(Registry.BIOME_KEY).getKey(biome));
         //RegistryKey<Biome> key = world.registryAccess().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome).orElseThrow(() -> new IllegalStateException("The Biome did not have a key."));
         return isBiomeAllowed(key);
@@ -67,7 +67,7 @@ public class BiomeRules
         return new Rule(false, true, label);
     }
 
-    private static class Rule implements Predicate<RegistryKey<Biome>>
+    private static class Rule implements Predicate<ResourceKey<Biome>>
     {
         public final boolean allow;
         public final boolean isLabel;
@@ -98,7 +98,7 @@ public class BiomeRules
         }
 
         @Override
-        public boolean test(RegistryKey<Biome> biome)
+        public boolean test(ResourceKey<Biome> biome)
         {
             if (labelName == null)
                 return allow;

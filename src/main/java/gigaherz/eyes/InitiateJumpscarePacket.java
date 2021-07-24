@@ -1,8 +1,10 @@
 package gigaherz.eyes;
 
+import com.mojang.serialization.JsonOps;
 import gigaherz.eyes.client.ClientMessageHandler;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -19,14 +21,14 @@ public class InitiateJumpscarePacket
         this.pz = pz;
     }
 
-    public InitiateJumpscarePacket(PacketBuffer buf)
+    public InitiateJumpscarePacket(FriendlyByteBuf buf)
     {
         this.px = buf.readDouble();
         this.py = buf.readDouble();
         this.pz = buf.readDouble();
     }
 
-    public void encode(PacketBuffer buf)
+    public void encode(FriendlyByteBuf buf)
     {
         buf.writeDouble(px);
         buf.writeDouble(py);
