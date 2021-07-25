@@ -13,9 +13,8 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'maven-publish'
-apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
 
-version = "1.0.3"
+version = "1.1.0"
 group = "gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
@@ -63,8 +62,12 @@ minecraft {
     }
 }
 
+repositories {
+    mavenLocal()
+}
+
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.17.1-37.0.5'
+    minecraft 'net.minecraftforge:forge:1.17.1-37.0.8'
 }
 
 jar {

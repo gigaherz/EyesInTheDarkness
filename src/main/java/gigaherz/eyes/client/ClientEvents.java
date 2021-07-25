@@ -5,20 +5,19 @@ import gigaherz.eyes.EyesInTheDarkness;
 import gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fmlclient.registry.RenderingRegistry;
 import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientEvents
 {
     @SubscribeEvent
-    public static void registerEntityRenders(final FMLClientSetupEvent event)
+    public static void registerEntityRenders(final EntityRenderersEvent.RegisterRenderers event)
     {
-        RenderingRegistry.registerEntityRenderingHandler(EyesEntity.TYPE, EyesRenderer::new);
+        event.registerEntityRenderer(EyesEntity.TYPE, EyesRenderer::new);
     }
 
     /* */
