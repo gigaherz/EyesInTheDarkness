@@ -34,6 +34,7 @@ minecraft {
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
             property 'forge.logging.noansi', "false"
+            property 'legacyClassPath', '{minecraft_classpath}'
 
             ideaModule "${project.name}.main"
 
