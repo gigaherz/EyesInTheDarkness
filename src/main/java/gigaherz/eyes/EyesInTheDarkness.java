@@ -63,15 +63,6 @@ public class EyesInTheDarkness
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
             .simpleChannel();
 
-    /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
-    /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
-    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
-            .setTrackingRange(80)
-            .setUpdateInterval(3)
-            .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
-            .setShouldReceiveVelocityUpdates(true)
-            .build(MODID + ":eyes"));
-
     public EyesInTheDarkness()
     {
         final ModLoadingContext modLoadingContext = ModLoadingContext.get();
@@ -97,6 +88,15 @@ public class EyesInTheDarkness
                 new SoundEvent(location("mob.eyes.jumpscare")).setRegistryName(location("eyes_jumpscare"))
         );
     }
+
+    /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
+    /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
+    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
+            .setTrackingRange(80)
+            .setUpdateInterval(3)
+            .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
+            .setShouldReceiveVelocityUpdates(true)
+            .build(MODID + ":eyes"));
 
     public void registerEntities(RegistryEvent.Register<EntityType<?>> event)
     {

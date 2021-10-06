@@ -20,7 +20,7 @@ public class ClientEvents
         event.registerEntityRenderer(EyesEntity.TYPE, EyesRenderer::new);
     }
 
-    /* */
+    /* *\/
     @Mod.EventBusSubscriber(value= Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     static class Debug
     {
