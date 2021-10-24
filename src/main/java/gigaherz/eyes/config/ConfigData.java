@@ -78,100 +78,111 @@ public class ConfigData
         ServerConfig(ForgeConfigSpec.Builder builder)
         {
             builder.push("general");
-            jumpscare = builder.comment("Set to false to disable the jumpscare system.")
-                    .define("Jumpscare", true);
-            jumpscareHurtLevel = builder.comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
-                    .defineInRange("JumpscareHurtLevel", 1, 0, 6);
-            eyesCanAttackWhileLit = builder.comment("While set to true, the eyes entity will ignore the artificial light level and will jumpscare even if it's lit. Daylight will still disable it's AI.")
-                    .define("EyesCanAttackWhileLit", true);
+            {
+                jumpscare = builder.comment("Set to false to disable the jumpscare system.")
+                        .define("Jumpscare", true);
+                jumpscareHurtLevel = builder.comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
+                        .defineInRange("JumpscareHurtLevel", 1, 0, 6);
+                eyesCanAttackWhileLit = builder.comment("While set to true, the eyes entity will ignore the artificial light level and will jumpscare even if it's lit. Daylight will still disable it's AI.")
+                        .define("EyesCanAttackWhileLit", true);
+                speedNoAggro = builder.comment("The speed at which the eyes move, when not aggressive.")
+                        .defineInRange("SpeedNoAggro", 0.1f, 0.0f, Double.MAX_VALUE);
+                speedFullAggro = builder.comment("The speed at which the eyes move when aggressive.")
+                        .defineInRange("SpeedFullAggro", 0.5f, 0.0f, Double.MAX_VALUE);
+            }
             builder.pop();
             builder.push("eye_aggression");
-            enableEyeAggressionEscalation = builder.comment("While set to true, the eyes entities will progressively get more bold, and move faster, the longer they live.")
-                    .define("EnableEscalation", true);
-            eyeAggressionDependsOnLocalDifficulty = builder.comment("While set to true, the eyes entities will spawn with higher aggresion levels in higher local difficulties.")
-                    .define("LocalDifficulty", true);
-            eyeAggressionDependsOnLightLevel = builder.comment("While set to true, the eyes entities will have higher aggression values on lower light levels.")
-                    .define("LightLevel", true);
+            {
+                enableEyeAggressionEscalation = builder.comment("While set to true, the eyes entities will progressively get more bold, and move faster, the longer they live.")
+                        .define("EnableEscalation", true);
+                eyeAggressionDependsOnLocalDifficulty = builder.comment("While set to true, the eyes entities will spawn with higher aggresion levels in higher local difficulties.")
+                        .define("LocalDifficulty", true);
+                eyeAggressionDependsOnLightLevel = builder.comment("While set to true, the eyes entities will have higher aggression values on lower light levels.")
+                        .define("LightLevel", true);
+            }
             builder.pop();
             builder.push("sound_volumes");
-            eyeIdleVolume = builder.comment("Changes the volume of the idle sounds, relative to the volume of the hostile mob category.")
-                    .defineInRange("IdleNoiseVolume", 1.0, 0.0, 1.0);
-            eyeDisappearVolume = builder.comment("Changes the volume of the death/disappear sounds, relative to the volume of the hostile mob category.")
-                    .defineInRange("DisappearNoiseVolume", 1.0, 0.0, 1.0);
-            eyeJumpscareVolume = builder.comment("Changes the volume of the jumpscare sounds, relative to the volume of the hostile mob category.")
-                    .defineInRange("JumpscareVolume", 1.0, 0.0, 1.0);
+            {
+                eyeIdleVolume = builder.comment("Changes the volume of the idle sounds, relative to the volume of the hostile mob category.")
+                        .defineInRange("IdleNoiseVolume", 1.0, 0.0, 1.0);
+                eyeDisappearVolume = builder.comment("Changes the volume of the death/disappear sounds, relative to the volume of the hostile mob category.")
+                        .defineInRange("DisappearNoiseVolume", 1.0, 0.0, 1.0);
+                eyeJumpscareVolume = builder.comment("Changes the volume of the jumpscare sounds, relative to the volume of the hostile mob category.")
+                        .defineInRange("JumpscareVolume", 1.0, 0.0, 1.0);
+            }
             builder.pop();
 
             builder.push("spawning");
-            enableNaturalSpawn = builder.comment("If false, the eyes entity will not spawn naturally during the night.")
-                    .define("EnableNaturalSpawn", true);
-            maxEyesSpawnDistance = builder.comment("Max block distance from a player at which the eyes will spawn.")
-                    .defineInRange("MaxEyesSpawnDistance", 64, 1, Integer.MAX_VALUE);
-            biomeRules = builder
-                    .comment(
-                            "Specifies rules for accepting or rejecting biomes.",
-                            "The rules are scanned one by one until a rule matches, This means the first rule to match takes precedence over any other subsequent rule, so more specific rules should go first.",
-                            "Rules:",
-                            "  \"biome:name\"    -- ALLOWS spawning in the given biome.",
-                            "  \"!biome:name\"   -- DISALLOWS spawning in the given biome.",
-                            "  \"#biome_label\"  -- ALLOWS spawning in the given biome dictionary label.",
-                            "  \"!#biome_label\" -- DISALLOWS spawning in the given biome dictionary label.",
-                            "  \"!*\"            -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
-                            "Examples:",
-                            "  To disable spawning in the end: [ \"!#END\" ]",
-                            "  To disable spawning in the nether biome: [ \"!minecraft:nether\" ]",
-                            "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#FOREST\" ]",
-                            "NOTE: VOID type biomes are disabled by default, internally. You can explicitly enable those by adding \"#VOID\" to the rules, but this is not recommended."
-                    ).defineList("BiomeRules", Lists.newArrayList(), o -> o instanceof String);
-            dimensionRules = builder
-                    .comment(
-                            "Specifies rules for accepting or rejecting dimensions.",
-                            "The rules are scanned one by one until a rule matches, This means the first rule to match takes precedence over any other subsequent rule, so more specific rules should go first.",
-                            "Rules:",
-                            "  \"dimension:name\"   -- ALLOWS spawning in the given dimension.",
-                            "  \"!dimension:name\"  -- DISALLOWS spawning in the given dimension.",
-                            "  \"#dimension:type\"  -- ALLOWS spawning in any dimension with the given dimension type.",
-                            "  \"!#dimension:type\" -- DISALLOWS spawning in any dimension with the given dimension type.",
-                            "  \"!*\"               -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
-                            "Examples:",
-                            "  To disable spawning in the end dimension: [ \"!minecraft:the_end\" ]",
-                            "  To disable spawning in the nether dimension: [ \"!minecraft:nether\" ]",
-                            "  To disable spawning in all secondary overworlds, but allow the vanilla overworld: [ \"minecraft:overworld\", \"!#minecraft:overworld\" ]"
-                    ).defineList("DimensionRules", Lists.newArrayList(), o -> o instanceof String);
+            {
+                enableNaturalSpawn = builder.comment("If false, the eyes entity will not spawn naturally during the night.")
+                        .define("EnableNaturalSpawn", true);
+                maxEyesSpawnDistance = builder.comment("Max block distance from a player at which the eyes will spawn.")
+                        .defineInRange("MaxEyesSpawnDistance", 64, 1, Integer.MAX_VALUE);
+                biomeRules = builder
+                        .comment(
+                                "Specifies rules for accepting or rejecting biomes.",
+                                "The rules are scanned one by one until a rule matches, This means the first rule to match takes precedence over any other subsequent rule, so more specific rules should go first.",
+                                "Rules:",
+                                "  \"biome:name\"    -- ALLOWS spawning in the given biome.",
+                                "  \"!biome:name\"   -- DISALLOWS spawning in the given biome.",
+                                "  \"#biome_label\"  -- ALLOWS spawning in the given biome dictionary label.",
+                                "  \"!#biome_label\" -- DISALLOWS spawning in the given biome dictionary label.",
+                                "  \"!*\"            -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
+                                "Examples:",
+                                "  To disable spawning in the end: [ \"!#END\" ]",
+                                "  To disable spawning in the nether biome: [ \"!minecraft:nether\" ]",
+                                "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#FOREST\" ]",
+                                "NOTE: VOID type biomes are disabled by default, internally. You can explicitly enable those by adding \"#VOID\" to the rules, but this is not recommended."
+                        ).defineList("BiomeRules", Lists.newArrayList(), o -> o instanceof String);
+                dimensionRules = builder
+                        .comment(
+                                "Specifies rules for accepting or rejecting dimensions.",
+                                "The rules are scanned one by one until a rule matches, This means the first rule to match takes precedence over any other subsequent rule, so more specific rules should go first.",
+                                "Rules:",
+                                "  \"dimension:name\"   -- ALLOWS spawning in the given dimension.",
+                                "  \"!dimension:name\"  -- DISALLOWS spawning in the given dimension.",
+                                "  \"#dimension:type\"  -- ALLOWS spawning in any dimension with the given dimension type.",
+                                "  \"!#dimension:type\" -- DISALLOWS spawning in any dimension with the given dimension type.",
+                                "  \"!*\"               -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
+                                "Examples:",
+                                "  To disable spawning in the end dimension: [ \"!minecraft:the_end\" ]",
+                                "  To disable spawning in the nether dimension: [ \"!minecraft:nether\" ]",
+                                "  To disable spawning in all secondary overworlds, but allow the vanilla overworld: [ \"minecraft:overworld\", \"!#minecraft:overworld\" ]"
+                        ).defineList("DimensionRules", Lists.newArrayList(), o -> o instanceof String);
+            }
             builder.pop();
-
             builder.comment("Default spawn settings")
                     .push("spawning_normal");
-            spawnCycleIntervalNormal = builder.comment("Number of ticks between spawn cycles.")
-                    .defineInRange("SpawnCycleInterval", 150, 1, Integer.MAX_VALUE);
-            maxEyesAroundPlayerNormal = builder.comment("Max number of eyes entities that will spawn around any one player.")
-                    .defineInRange("MaxEyesAroundPlayer", 2, 1, Integer.MAX_VALUE);
-            maxTotalEyesPerDimensionNormal = builder.comment("Max number of eyes entities that will spawn in each dimension.")
-                    .defineInRange("MaxTotalEyesPerDimension", 15, 1, Integer.MAX_VALUE);
+            {
+                spawnCycleIntervalNormal = builder.comment("Number of ticks between spawn cycles.")
+                        .defineInRange("SpawnCycleInterval", 150, 1, Integer.MAX_VALUE);
+                maxEyesAroundPlayerNormal = builder.comment("Max number of eyes entities that will spawn around any one player.")
+                        .defineInRange("MaxEyesAroundPlayer", 2, 1, Integer.MAX_VALUE);
+                maxTotalEyesPerDimensionNormal = builder.comment("Max number of eyes entities that will spawn in each dimension.")
+                        .defineInRange("MaxTotalEyesPerDimension", 15, 1, Integer.MAX_VALUE);
+            }
             builder.pop();
-
             builder.comment("Spawn settings in the minutes around midnight")
                     .push("spawning_midnight");
-            spawnCycleIntervalMidnight = builder.comment("Number of ticks between spawn cycles.")
-                    .defineInRange("SpawnCycleInterval", 50, 1, Integer.MAX_VALUE);
-            maxEyesAroundPlayerMidnight = builder.comment("Max number of eyes entities that will spawn around any one player.")
-                    .defineInRange("MaxEyesAroundPlayer", 3, 1, Integer.MAX_VALUE);
-            maxTotalEyesPerDimensionMidnight = builder.comment("Max number of eyes entities that will spawn in each dimension.")
-                    .defineInRange("MaxTotalEyesPerDimension", 15, 1, Integer.MAX_VALUE);
+            {
+                spawnCycleIntervalMidnight = builder.comment("Number of ticks between spawn cycles.")
+                        .defineInRange("SpawnCycleInterval", 50, 1, Integer.MAX_VALUE);
+                maxEyesAroundPlayerMidnight = builder.comment("Max number of eyes entities that will spawn around any one player.")
+                        .defineInRange("MaxEyesAroundPlayer", 3, 1, Integer.MAX_VALUE);
+                maxTotalEyesPerDimensionMidnight = builder.comment("Max number of eyes entities that will spawn in each dimension.")
+                        .defineInRange("MaxTotalEyesPerDimension", 15, 1, Integer.MAX_VALUE);
+            }
             builder.pop();
-
             builder.comment("Spawn settings in the days leading to halloween")
                     .push("spawning_halloween");
-            spawnCycleIntervalHalloween = builder.comment("Number of ticks between spawn cycles.")
-                    .defineInRange("SpawnCycleInterval", 15, 1, Integer.MAX_VALUE);
-            maxEyesAroundPlayerHalloween = builder.comment("Max number of eyes entities that will spawn around any one player.")
-                    .defineInRange("MaxEyesAroundPlayer", 5, 1, Integer.MAX_VALUE);
-            maxTotalEyesPerDimensionHalloween = builder.comment("Max number of eyes entities that will spawn in each dimension.")
-                    .defineInRange("MaxTotalEyesPerDimension", 50, 1, Integer.MAX_VALUE);
-            speedNoAggro = builder.comment("The speed at which the eyes move, when not aggressive.")
-                    .defineInRange("SpeedNoAggro", 0.1f, 0.0f, Double.MAX_VALUE);
-            speedFullAggro = builder.comment("The speed at which the eyes move when aggressive.")
-                    .defineInRange("SpeedFullAggro", 0.5f, 0.0f, Double.MAX_VALUE);
+            {
+                spawnCycleIntervalHalloween = builder.comment("Number of ticks between spawn cycles.")
+                        .defineInRange("SpawnCycleInterval", 50, 1, Integer.MAX_VALUE);
+                maxEyesAroundPlayerHalloween = builder.comment("Max number of eyes entities that will spawn around any one player.")
+                        .defineInRange("MaxEyesAroundPlayer", 5, 1, Integer.MAX_VALUE);
+                maxTotalEyesPerDimensionHalloween = builder.comment("Max number of eyes entities that will spawn in each dimension.")
+                        .defineInRange("MaxTotalEyesPerDimension", 25, 1, Integer.MAX_VALUE);
+            }
             builder.pop();
         }
     }
