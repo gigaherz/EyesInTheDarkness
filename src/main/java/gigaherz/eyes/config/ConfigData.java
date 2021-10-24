@@ -76,6 +76,8 @@ public class ConfigData
         public final ForgeConfigSpec.DoubleValue speedNoAggro;
         public final ForgeConfigSpec.DoubleValue speedFullAggro;
 
+        public final ForgeConfigSpec.LongValue longSpawnCycleWarning;
+
         ServerConfig(ForgeConfigSpec.Builder builder)
         {
             builder.push("general");
@@ -90,6 +92,8 @@ public class ConfigData
                         .defineInRange("SpeedNoAggro", 0.1f, 0.0f, Double.MAX_VALUE);
                 speedFullAggro = builder.comment("The speed at which the eyes move when aggressive.")
                         .defineInRange("SpeedFullAggro", 0.5f, 0.0f, Double.MAX_VALUE);
+                longSpawnCycleWarning = builder.comment("The time the spawn cycle can take before a warning is printed to the log. In Microseconds. Default = 50ms")
+                        .defineInRange("LongSpawnCycleWarning", 50000L, 0, Long.MAX_VALUE);
             }
             builder.pop();
             builder.push("eye_aggression");
@@ -228,6 +232,8 @@ public class ConfigData
 
     public static double speedNoAggro;
     public static double speedFullAggro;
+
+    public static long longSpawnCycleWarning;
 
     // Client
     public static boolean jumpscareClient;
