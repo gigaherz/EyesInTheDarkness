@@ -173,7 +173,8 @@ public class EyesSpawningManager
                 return;
             }
 
-            float d = ConfigData.maxEyesSpawnDistance;
+            float d = ConfigData.maxEyesSpawnDistance * 1.5f;
+            float dSqr = d * d;
             AABB size = AABB.ofSize(Vec3.ZERO, d, d, d);
 
             List<ServerPlayer> players = parent.players();
@@ -182,10 +183,10 @@ public class EyesSpawningManager
             {
                 if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
                 {
-                    List<EyesEntity> entities = parent.getEntities(EyesEntity.TYPE, size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceTo(player) <= ConfigData.maxEyesSpawnDistance);
+                    List<EyesEntity> entities = parent.getEntities(EyesEntity.TYPE, size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceToSqr(player) <= dSqr);
                     if (entities.size() < maxEyesAroundPlayer)
                     {
-                        spawnOneAround(player.position(), player, d);
+                        spawnOneAround(player.position(), player, ConfigData.maxEyesSpawnDistance);
                     }
                 }
             }
@@ -235,8 +236,8 @@ public class EyesSpawningManager
 
         for(int i=0;i<100;i++)
         {
-            double sX = parent.random.nextFloat() * d + positionVec.x();
-            double sZ = parent.random.nextFloat() * d + positionVec.z();
+            double sX = (1-2*parent.random.nextFloat()) * d + positionVec.x();
+            double sZ = (1-2*parent.random.nextFloat()) * d + positionVec.z();
 
             pos.set(sX, 0, sZ);
 

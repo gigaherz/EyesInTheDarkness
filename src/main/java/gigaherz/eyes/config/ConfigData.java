@@ -79,31 +79,42 @@ public class ConfigData
         ServerConfig(ForgeConfigSpec.Builder builder)
         {
             builder.push("general");
+            {
             jumpscare = builder.comment("Set to false to disable the jumpscare system.")
                     .define("Jumpscare", true);
             jumpscareHurtLevel = builder.comment("Set to a number > 0 to cause the jumpscare to apply poison the player. A value of 5 will take around half of the health. ")
                     .defineInRange("JumpscareHurtLevel", 1, 0, 6);
             eyesCanAttackWhileLit = builder.comment("While set to true, the eyes entity will ignore the artificial light level and will jumpscare even if it's lit. Daylight will still disable it's AI.")
                     .define("EyesCanAttackWhileLit", true);
+                speedNoAggro = builder.comment("The speed at which the eyes move, when not aggressive.")
+                        .defineInRange("SpeedNoAggro", 0.1f, 0.0f, Double.MAX_VALUE);
+                speedFullAggro = builder.comment("The speed at which the eyes move when aggressive.")
+                        .defineInRange("SpeedFullAggro", 0.5f, 0.0f, Double.MAX_VALUE);
+            }
             builder.pop();
             builder.push("eye_aggression");
+            {
             enableEyeAggressionEscalation = builder.comment("While set to true, the eyes entities will progressively get more bold, and move faster, the longer they live.")
                     .define("EnableEscalation", true);
             eyeAggressionDependsOnLocalDifficulty = builder.comment("While set to true, the eyes entities will spawn with higher aggresion levels in higher local difficulties.")
                     .define("LocalDifficulty", true);
             eyeAggressionDependsOnLightLevel = builder.comment("While set to true, the eyes entities will have higher aggression values on lower light levels.")
                     .define("LightLevel", true);
+            }
             builder.pop();
             builder.push("sound_volumes");
+            {
             eyeIdleVolume = builder.comment("Changes the volume of the idle sounds, relative to the volume of the hostile mob category.")
                     .defineInRange("IdleNoiseVolume", 1.0, 0.0, 1.0);
             eyeDisappearVolume = builder.comment("Changes the volume of the death/disappear sounds, relative to the volume of the hostile mob category.")
                     .defineInRange("DisappearNoiseVolume", 1.0, 0.0, 1.0);
             eyeJumpscareVolume = builder.comment("Changes the volume of the jumpscare sounds, relative to the volume of the hostile mob category.")
                     .defineInRange("JumpscareVolume", 1.0, 0.0, 1.0);
+            }
             builder.pop();
 
             builder.push("spawning");
+            {
             enableNaturalSpawn = builder.comment("If false, the eyes entity will not spawn naturally during the night.")
                     .define("EnableNaturalSpawn", true);
             maxEyesSpawnDistance = builder.comment("Max block distance from a player at which the eyes will spawn.")
@@ -139,40 +150,40 @@ public class ConfigData
                             "  To disable spawning in the nether dimension: [ \"!minecraft:nether\" ]",
                             "  To disable spawning in all secondary overworlds, but allow the vanilla overworld: [ \"minecraft:overworld\", \"!#minecraft:overworld\" ]"
                     ).defineList("DimensionRules", Lists.newArrayList(), o -> o instanceof String);
+            }
             builder.pop();
-
             builder.comment("Default spawn settings")
                     .push("spawning_normal");
+            {
             spawnCycleIntervalNormal = builder.comment("Number of ticks between spawn cycles.")
                     .defineInRange("SpawnCycleInterval", 150, 1, Integer.MAX_VALUE);
             maxEyesAroundPlayerNormal = builder.comment("Max number of eyes entities that will spawn around any one player.")
                     .defineInRange("MaxEyesAroundPlayer", 2, 1, Integer.MAX_VALUE);
             maxTotalEyesPerDimensionNormal = builder.comment("Max number of eyes entities that will spawn in each dimension.")
                     .defineInRange("MaxTotalEyesPerDimension", 15, 1, Integer.MAX_VALUE);
+            }
             builder.pop();
-
             builder.comment("Spawn settings in the minutes around midnight")
                     .push("spawning_midnight");
+            {
             spawnCycleIntervalMidnight = builder.comment("Number of ticks between spawn cycles.")
                     .defineInRange("SpawnCycleInterval", 50, 1, Integer.MAX_VALUE);
             maxEyesAroundPlayerMidnight = builder.comment("Max number of eyes entities that will spawn around any one player.")
                     .defineInRange("MaxEyesAroundPlayer", 3, 1, Integer.MAX_VALUE);
             maxTotalEyesPerDimensionMidnight = builder.comment("Max number of eyes entities that will spawn in each dimension.")
                     .defineInRange("MaxTotalEyesPerDimension", 15, 1, Integer.MAX_VALUE);
+            }
             builder.pop();
-
             builder.comment("Spawn settings in the days leading to halloween")
                     .push("spawning_halloween");
+            {
             spawnCycleIntervalHalloween = builder.comment("Number of ticks between spawn cycles.")
-                    .defineInRange("SpawnCycleInterval", 15, 1, Integer.MAX_VALUE);
+                        .defineInRange("SpawnCycleInterval", 50, 1, Integer.MAX_VALUE);
             maxEyesAroundPlayerHalloween = builder.comment("Max number of eyes entities that will spawn around any one player.")
                     .defineInRange("MaxEyesAroundPlayer", 5, 1, Integer.MAX_VALUE);
             maxTotalEyesPerDimensionHalloween = builder.comment("Max number of eyes entities that will spawn in each dimension.")
-                    .defineInRange("MaxTotalEyesPerDimension", 50, 1, Integer.MAX_VALUE);
-            speedNoAggro = builder.comment("The speed at which the eyes move, when not aggressive.")
-                    .defineInRange("SpeedNoAggro", 0.1f, 0.0f, Double.MAX_VALUE);
-            speedFullAggro = builder.comment("The speed at which the eyes move when aggressive.")
-                    .defineInRange("SpeedFullAggro", 0.5f, 0.0f, Double.MAX_VALUE);
+                        .defineInRange("MaxTotalEyesPerDimension", 25, 1, Integer.MAX_VALUE);
+            }
             builder.pop();
         }
     }
