@@ -208,7 +208,7 @@ public class EyesSpawningManager
             watch.stop();
 
             long us = watch.elapsed(TimeUnit.MICROSECONDS);
-            if (us > 10000) // 10ms
+            if (us > ConfigData.longSpawnCycleWarning) // default = 50ms
             {
                 LOGGER.warn("WARNING: Unexpectedly long spawn cycle. It ran for {}ms!", us/1000.0);
             }
