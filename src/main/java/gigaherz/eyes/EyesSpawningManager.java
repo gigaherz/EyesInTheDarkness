@@ -21,10 +21,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
@@ -44,14 +41,13 @@ public class EyesSpawningManager
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    @CapabilityInject(EyesSpawningManager.class)
-    public static Capability<EyesSpawningManager> INSTANCE;
+    public static Capability<EyesSpawningManager> INSTANCE = CapabilityManager.get(new CapabilityToken<>(){});
 
     private static final ResourceLocation CAP_KEY = new ResourceLocation("eyesinthedarkness:eyes_spawning_manager");
 
-    public static void init()
+    public static void init(RegisterCapabilitiesEvent event)
     {
-        CapabilityManager.INSTANCE.register(EyesSpawningManager.class);
+        event.register(EyesSpawningManager.class);
 
         MinecraftForge.EVENT_BUS.addGenericListener(Level.class, EyesSpawningManager::onCapabilityAttach);
         MinecraftForge.EVENT_BUS.addListener(EyesSpawningManager::onWorldTick);

@@ -17,20 +17,20 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fmllegacy.network.NetworkDirection;
-import net.minecraftforge.fmllegacy.network.NetworkRegistry;
-import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ObjectHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,6 +73,7 @@ public class EyesInTheDarkness
         modEventBus.addGenericListener(Item.class, this::registerItems);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::entityAttributes);
+        modEventBus.addListener(this::registerCapabilities);
 
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
@@ -123,6 +124,11 @@ public class EyesInTheDarkness
         );
     }
 
+    public void registerCapabilities(RegisterCapabilitiesEvent event)
+    {
+        EyesSpawningManager.init(event);
+    }
+
     public void commonSetup(FMLCommonSetupEvent event)
     {
         int messageNumber = 0;
@@ -130,8 +136,6 @@ public class EyesInTheDarkness
                 .encoder(InitiateJumpscarePacket::encode).decoder(InitiateJumpscarePacket::new).consumer(InitiateJumpscarePacket::handle)
                 .add();
         LOGGER.debug("Final message number: " + messageNumber);
-
-        EyesSpawningManager.init();
     }
 
     public void entityInit(EntityJoinWorldEvent event)

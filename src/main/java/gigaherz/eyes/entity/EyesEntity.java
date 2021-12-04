@@ -32,16 +32,14 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fmllegacy.network.NetworkDirection;
-import net.minecraftforge.fmllegacy.network.NetworkHooks;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.DoubleSupplier;
-
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;

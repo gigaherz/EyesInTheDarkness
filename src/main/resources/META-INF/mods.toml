@@ -1,9 +1,5 @@
 modLoader="javafml"
-loaderVersion="[37,)"
-#updateJSONURL=""
-issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
-displayURL="https://github.com/gigaherz/EyesInTheDarkness"
-logoFile="logo.png"
+loaderVersion="[38,)"
 license="BSD (3 clause)"
 
 [[mods]]
@@ -15,16 +11,20 @@ authors="gigaherz"
 description='''
 Those eyes you think you saw when walking through the forest at night. No, you did not imagine them.
 '''
+#updateJSONURL=""
+issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
+displayURL="https://github.com/gigaherz/EyesInTheDarkness"
+logoFile="logo.png"
 
 [[dependencies.eyesinthedarkness]]
    modId="forge"
    mandatory=true
-   versionRange="[37.0.8,)"
+   versionRange="[38.0.10,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]
    modId="minecraft"
    mandatory=true
-   versionRange="[1.17.1,1.18)"
+   versionRange="[1.18,1.19)"
    ordering="NONE"
    side="BOTH"
