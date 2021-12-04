@@ -1,25 +1,25 @@
 package gigaherz.eyes;
 
 import com.google.common.base.Stopwatch;
-import com.mojang.math.Vector3f;
 import gigaherz.eyes.config.BiomeRules;
 import gigaherz.eyes.config.ConfigData;
 import gigaherz.eyes.config.DimensionRules;
 import gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.server.level.ServerChunkCache;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -39,10 +39,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnPlacements;
 
 public class EyesSpawningManager
 {
@@ -86,6 +82,7 @@ public class EyesSpawningManager
     private static void onWorldTick(TickEvent.WorldTickEvent event)
     {
         if (event.world.isClientSide) return;
+        if (event.phase != TickEvent.Phase.START) return;
         event.world.getCapability(INSTANCE).ifPresent(EyesSpawningManager::tick);
     }
 
@@ -178,7 +175,7 @@ public class EyesSpawningManager
             AABB size = AABB.ofSize(Vec3.ZERO, d, d, d);
 
             List<ServerPlayer> players = parent.players();
-            int wrap = Math.min(players.size(), 20);
+            int wrap = 20; //Math.min(players.size(), 20);
             for (ServerPlayer player : players)
             {
                 if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
@@ -208,24 +205,31 @@ public class EyesSpawningManager
 
     private int calculateSpawnCycleInterval(int daysUntilNextHalloween, int minutesToMidnight)
     {
-        return Math.max(1, calculateTimeBasedValue(ConfigData.spawnCycleIntervalNormal, ConfigData.spawnCycleIntervalMidnight, ConfigData.spawnCycleIntervalHalloween, daysUntilNextHalloween, minutesToMidnight));
+        return Math.max(1, calculateTimeBasedValueMin(ConfigData.spawnCycleIntervalNormal, ConfigData.spawnCycleIntervalMidnight, ConfigData.spawnCycleIntervalHalloween, daysUntilNextHalloween, minutesToMidnight));
     }
 
     private int calculateMaxTotalEyesPerDimension(int daysUntilNextHalloween, int minutesToMidnight)
     {
-        return Math.max(1, calculateTimeBasedValue(ConfigData.maxTotalEyesPerDimensionNormal, ConfigData.maxTotalEyesPerDimensionMidnight, ConfigData.maxTotalEyesPerDimensionHalloween, daysUntilNextHalloween, minutesToMidnight));
+        return Math.max(1, calculateTimeBasedValueMax(ConfigData.maxTotalEyesPerDimensionNormal, ConfigData.maxTotalEyesPerDimensionMidnight, ConfigData.maxTotalEyesPerDimensionHalloween, daysUntilNextHalloween, minutesToMidnight));
     }
 
     private int calculateMaxEyesAroundPlayer(int daysUntilNextHalloween, int minutesToMidnight)
     {
-        return Math.max(1, calculateTimeBasedValue(ConfigData.maxEyesAroundPlayerNormal, ConfigData.maxEyesAroundPlayerMidnight, ConfigData.maxEyesAroundPlayerHalloween, daysUntilNextHalloween, minutesToMidnight));
+        return Math.max(1, calculateTimeBasedValueMax(ConfigData.maxEyesAroundPlayerNormal, ConfigData.maxEyesAroundPlayerMidnight, ConfigData.maxEyesAroundPlayerHalloween, daysUntilNextHalloween, minutesToMidnight));
     }
 
-    private int calculateTimeBasedValue(int normal, int midnight, int halloween, int daysUntilNextHalloween, int minutesToMidnight)
+    private int calculateTimeBasedValueMax(int normal, int midnight, int halloween, int daysUntilNextHalloween, int minutesToMidnight)
     {
-        int valueByDate = ((halloween - normal) * Math.max(0, 30 - daysUntilNextHalloween)) / 30;
-        int valueByTime = ((midnight - normal) * Math.max(0, 240 - minutesToMidnight)) / 240;
-        return normal + valueByDate + valueByTime;
+        int valueByTime = normal + ((midnight - normal) * Math.max(0, 240 - minutesToMidnight)) / 240;
+        int valueByDate = normal + ((halloween - normal) * Math.max(0, 30 - daysUntilNextHalloween)) / 30;
+        return Math.max(valueByDate, valueByTime);
+    }
+
+    private int calculateTimeBasedValueMin(int normal, int midnight, int halloween, int daysUntilNextHalloween, int minutesToMidnight)
+    {
+        int valueByTime = normal + ((midnight - normal) * Math.max(0, 240 - minutesToMidnight)) / 240;
+        int valueByDate = normal + ((halloween - normal) * Math.max(0, 30 - daysUntilNextHalloween)) / 30;
+        return Math.min(valueByDate, valueByTime);
     }
 
     private void spawnOneAround(Vec3 positionVec, ServerPlayer player, float d)
