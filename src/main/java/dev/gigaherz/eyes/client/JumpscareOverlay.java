@@ -1,10 +1,10 @@
-package gigaherz.eyes.client;
+package dev.gigaherz.eyes.client;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;
-import gigaherz.eyes.config.ConfigData;
-import gigaherz.eyes.EyesInTheDarkness;
+import dev.gigaherz.eyes.EyesInTheDarkness;
+import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.GameRenderer;
@@ -21,7 +21,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import org.lwjgl.opengl.GL11;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.MOD)
 public class JumpscareOverlay extends GuiComponent implements IIngameOverlay

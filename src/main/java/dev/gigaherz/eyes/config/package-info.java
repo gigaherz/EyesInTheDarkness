@@ -1,6 +1,6 @@
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-package gigaherz.eyes.config;
+package dev.gigaherz.eyes.config;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

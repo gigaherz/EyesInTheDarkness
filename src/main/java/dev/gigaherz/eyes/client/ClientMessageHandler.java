@@ -1,6 +1,6 @@
-package gigaherz.eyes.client;
+package dev.gigaherz.eyes.client;
 
-import gigaherz.eyes.InitiateJumpscarePacket;
+import dev.gigaherz.eyes.InitiateJumpscarePacket;
 
 public class ClientMessageHandler
 {

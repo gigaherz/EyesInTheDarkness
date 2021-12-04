@@ -1,6 +1,6 @@
-package gigaherz.eyes;
+package dev.gigaherz.eyes;
 
-import gigaherz.eyes.client.ClientMessageHandler;
+import dev.gigaherz.eyes.client.ClientMessageHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 

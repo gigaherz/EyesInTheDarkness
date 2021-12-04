@@ -1,10 +1,10 @@
-package gigaherz.eyes;
+package dev.gigaherz.eyes;
 
 import com.google.common.base.Stopwatch;
-import gigaherz.eyes.config.BiomeRules;
-import gigaherz.eyes.config.ConfigData;
-import gigaherz.eyes.config.DimensionRules;
-import gigaherz.eyes.entity.EyesEntity;
+import dev.gigaherz.eyes.config.BiomeRules;
+import dev.gigaherz.eyes.config.ConfigData;
+import dev.gigaherz.eyes.config.DimensionRules;
+import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;

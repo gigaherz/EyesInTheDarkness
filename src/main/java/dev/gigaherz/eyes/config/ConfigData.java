@@ -1,8 +1,8 @@
-package gigaherz.eyes.config;
+package dev.gigaherz.eyes.config;
 
 import com.google.common.collect.Lists;
-import gigaherz.eyes.EyesInTheDarkness;
-import gigaherz.eyes.entity.EyesEntity;
+import dev.gigaherz.eyes.EyesInTheDarkness;
+import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;

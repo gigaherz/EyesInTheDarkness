@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
 version = "1.2.0"
-group = "gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
 project.afterEvaluate {

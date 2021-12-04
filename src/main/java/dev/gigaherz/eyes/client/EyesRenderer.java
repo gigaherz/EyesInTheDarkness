@@ -1,13 +1,12 @@
-package gigaherz.eyes.client;
+package dev.gigaherz.eyes.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import gigaherz.eyes.EyesInTheDarkness;
-import gigaherz.eyes.entity.EyesEntity;
+import dev.gigaherz.eyes.EyesInTheDarkness;
+import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -16,8 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import com.mojang.math.Matrix4f;
 import net.minecraft.world.level.LightLayer;
-
-import javax.annotation.Nullable;
 
 public class EyesRenderer extends EntityRenderer<EyesEntity>
 {

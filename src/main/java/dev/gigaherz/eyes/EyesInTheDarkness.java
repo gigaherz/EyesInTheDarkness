@@ -1,7 +1,7 @@
-package gigaherz.eyes;
+package dev.gigaherz.eyes;
 
-import gigaherz.eyes.config.ConfigData;
-import gigaherz.eyes.entity.EyesEntity;
+import dev.gigaherz.eyes.config.ConfigData;
+import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacements;

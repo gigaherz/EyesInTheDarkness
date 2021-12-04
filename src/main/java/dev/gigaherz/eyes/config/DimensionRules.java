@@ -1,4 +1,4 @@
-package gigaherz.eyes.config;
+package dev.gigaherz.eyes.config;
 
 import com.google.common.collect.Lists;
 import net.minecraft.core.Registry;

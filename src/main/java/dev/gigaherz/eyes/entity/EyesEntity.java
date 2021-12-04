@@ -1,8 +1,8 @@
-package gigaherz.eyes.entity;
+package dev.gigaherz.eyes.entity;
 
-import gigaherz.eyes.config.ConfigData;
-import gigaherz.eyes.EyesInTheDarkness;
-import gigaherz.eyes.InitiateJumpscarePacket;
+import dev.gigaherz.eyes.EyesInTheDarkness;
+import dev.gigaherz.eyes.InitiateJumpscarePacket;
+import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
