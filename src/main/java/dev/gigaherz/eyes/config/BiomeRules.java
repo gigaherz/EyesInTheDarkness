@@ -4,28 +4,32 @@ import com.google.common.collect.Lists;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public class BiomeRules
 {
-    private static final List<Rule> rules = Lists.newArrayList();
+    private static final AtomicReference<List<Rule>> rules = new AtomicReference<>(new ArrayList<>());
 
     /*package*/
-    static void parseRules(List<? extends String> biomeRules)
+    static void parseRules(List<? extends String> dimensionRules)
     {
-        rules.clear();
-        biomeRules.forEach(r -> rules.add(parse(r)));
-        rules.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+        var list = new ArrayList<Rule>();
+        dimensionRules.forEach(r -> list.add(parse(r)));
+        list.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+        rules.set(list);
     }
 
     public static boolean isBiomeAllowed(ResourceKey<Biome> key)
     {
-        for (Rule rule : rules)
+        for (Rule rule : rules.get())
         {
             if (rule.test(key))
                 return rule.allow;

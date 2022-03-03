@@ -5,24 +5,27 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public class DimensionRules
 {
-    private static final List<Rule> rules = Lists.newArrayList();
+    private static final AtomicReference<List<Rule>> rules = new AtomicReference<>(new ArrayList<>());
 
     /*package*/
     static void parseRules(List<? extends String> dimensionRules)
     {
-        rules.clear();
-        dimensionRules.forEach(r -> rules.add(parse(r)));
-        rules.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+        var list = new ArrayList<Rule>();
+        dimensionRules.forEach(r -> list.add(parse(r)));
+        list.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+        rules.set(list);
     }
 
     public static boolean isDimensionAllowed(ServerLevel world)
     {
-        for (Rule rule : rules)
+        for (Rule rule : rules.get())
         {
             if (rule == null)
                 continue;
