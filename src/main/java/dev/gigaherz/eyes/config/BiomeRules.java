@@ -1,13 +1,15 @@
 package dev.gigaherz.eyes.config;
 
-import com.google.common.collect.Lists;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.Registry;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.registries.ForgeRegistryEntry;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,11 +25,11 @@ public class BiomeRules
     {
         var list = new ArrayList<Rule>();
         dimensionRules.forEach(r -> list.add(parse(r)));
-        list.add(disallowLabel("void")); // Added at the end to make sure it's lowest priority.
+        list.add(disallowVoidBiomes()); // Added at the end to make sure it's lowest priority.
         rules.set(list);
     }
 
-    public static boolean isBiomeAllowed(ResourceKey<Biome> key)
+    public static boolean isBiomeAllowed(Holder<Biome> key)
     {
         for (Rule rule : rules.get())
         {
@@ -35,14 +37,6 @@ public class BiomeRules
                 return rule.allow;
         }
         return true;
-    }
-
-    public static boolean isBiomeAllowed(Biome biome)
-    {
-        ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, Objects.requireNonNull(biome.getRegistryName()));
-        //RegistryKey<Biome> key = RegistryKey.getOrCreateKey(Registry.BIOME_KEY, world.registryAccess().getRegistry(Registry.BIOME_KEY).getKey(biome));
-        //RegistryKey<Biome> key = world.registryAccess().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome).orElseThrow(() -> new IllegalStateException("The Biome did not have a key."));
-        return isBiomeAllowed(key);
     }
 
     private static Rule parse(String rule)
@@ -53,66 +47,65 @@ public class BiomeRules
             allow = false;
             rule = rule.substring(1);
         }
-        boolean isLabel = false;
         if (rule.startsWith("#"))
         {
-            isLabel = true;
-            rule = rule.substring(1);
+            return new Rule(allow, null, null, rule.substring(1));
+        }
+        else if (rule.startsWith("$"))
+        {
+            return new Rule(allow, null, rule.substring(1), null);
         }
         else if (rule.equals("*"))
         {
-            rule = null;
+            return new Rule(allow, null, null, null);
         }
-        return new Rule(allow, isLabel, rule);
+        else
+        {
+            return new Rule(allow, rule, null, null);
+        }
     }
 
-    private static Rule disallowLabel(String label)
+    private static Rule disallowVoidBiomes()
     {
-        return new Rule(false, true, label);
+        return new Rule(false, null, null, "void");
     }
 
-    private static class Rule implements Predicate<ResourceKey<Biome>>
+    private static class Rule implements Predicate<Holder<Biome>>
     {
         public final boolean allow;
-        public final boolean isLabel;
-        public final String labelName;
         public final ResourceLocation registryName;
+        public final TagKey<Biome> tagKey;
         public final BiomeDictionary.Type labelType;
 
-        private Rule(boolean allow, boolean isLabel, String labelName)
+        private Rule(boolean allow, @Nullable String registryName, @Nullable String tagName, @Nullable String dictionaryLabel)
         {
             this.allow = allow;
-            this.isLabel = isLabel;
-            this.labelName = labelName;
-            if (labelName == null)
-            {
-                this.registryName = null;
-                this.labelType = null;
-            }
-            else if (isLabel)
-            {
-                this.registryName = null;
-                this.labelType = BiomeDictionary.Type.getType(labelName);
-            }
-            else
-            {
-                this.registryName = new ResourceLocation(labelName);
-                this.labelType = null;
-            }
+            this.registryName = registryName != null ? new ResourceLocation(registryName) : null;
+            this.tagKey = tagName != null ? TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(tagName)) : null;
+            this.labelType = dictionaryLabel != null ? BiomeDictionary.Type.getType(dictionaryLabel) : null;
         }
 
         @Override
-        public boolean test(ResourceKey<Biome> biome)
+        public boolean test(Holder<Biome> biome)
         {
-            if (labelName == null)
-                return allow;
-            if (isLabel)
+            if (labelType != null)
             {
-                return BiomeDictionary.hasType(biome, labelType);
+                ResourceKey<Biome> name = biome.unwrap().map(key -> key,
+                        value -> ResourceKey.create(Registry.BIOME_REGISTRY, Objects.requireNonNull(value.getRegistryName())));
+                return BiomeDictionary.hasType(name, labelType) == allow;
+            }
+            else if (registryName != null)
+            {
+                ResourceLocation name = biome.unwrap().map(ResourceKey::location, ForgeRegistryEntry::getRegistryName);
+                return registryName.equals(name) == allow;
+            }
+            else if(tagKey != null)
+            {
+                return biome.is(tagKey) == allow;
             }
             else
             {
-                return registryName.equals(biome.location());
+                return allow;
             }
         }
     }

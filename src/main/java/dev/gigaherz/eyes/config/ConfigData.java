@@ -132,6 +132,8 @@ public class ConfigData
                                 "  \"!biome:name\"   -- DISALLOWS spawning in the given biome.",
                                 "  \"#biome_label\"  -- ALLOWS spawning in the given biome dictionary label.",
                                 "  \"!#biome_label\" -- DISALLOWS spawning in the given biome dictionary label.",
+                                "  \"$biome_label\"  -- ALLOWS spawning in the given biome tag.",
+                                "  \"!$biome_label\" -- DISALLOWS spawning in the given biome tag.",
                                 "  \"!*\"            -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
                                 "Examples:",
                                 "  To disable spawning in the end: [ \"!#END\" ]",
