@@ -34,7 +34,6 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -50,9 +49,6 @@ import net.minecraft.world.entity.SpawnGroupData;
 
 public class EyesEntity extends Monster
 {
-    @ObjectHolder("eyesinthedarkness:eyes")
-    public static EntityType<EyesEntity> TYPE = null;
-
     private static final EntityDataAccessor<Boolean> IS_DORMANT = SynchedEntityData.defineId(EyesEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> AGGRO = SynchedEntityData.defineId(EyesEntity.class, EntityDataSerializers.FLOAT);
 
@@ -314,19 +310,19 @@ public class EyesEntity extends Monster
     {
         if (tickCount == 0 || getIsDormant())
             return null;
-        return EyesInTheDarkness.eyes_laugh;
+        return EyesInTheDarkness.EYES_LAUGH.get();
     }
 
     @Override
     protected SoundEvent getDeathSound()
     {
-        return EyesInTheDarkness.eyes_disappear;
+        return EyesInTheDarkness.EYES_DISAPPEAR.get();
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSourceIn)
     {
-        return EyesInTheDarkness.eyes_disappear;
+        return EyesInTheDarkness.EYES_DISAPPEAR.get();
     }
 
     /**

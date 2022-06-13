@@ -160,7 +160,7 @@ public class EyesSpawningManager
             int maxTotalEyesPerDimension = calculateMaxTotalEyesPerDimension(daysUntilNextHalloween, minutesToMidnight);
             int maxEyesAroundPlayer = calculateMaxEyesAroundPlayer(daysUntilNextHalloween, minutesToMidnight);
 
-            int count = parent.getEntities(EyesEntity.TYPE, e -> ((EyesEntity) e).countsTowardSpawnCap()).size();
+            int count = parent.getEntities(EyesInTheDarkness.EYES.get(), e -> ((EyesEntity) e).countsTowardSpawnCap()).size();
             if (count >= maxTotalEyesPerDimension)
             {
                 return;
@@ -176,7 +176,7 @@ public class EyesSpawningManager
             {
                 if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
                 {
-                    List<EyesEntity> entities = parent.getEntities(EyesEntity.TYPE, size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceToSqr(player) <= dSqr);
+                    List<EyesEntity> entities = parent.getEntities(EyesInTheDarkness.EYES.get(), size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceToSqr(player) <= dSqr);
                     if (entities.size() < maxEyesAroundPlayer)
                     {
                         spawnOneAround(player.position(), player, ConfigData.maxEyesSpawnDistance);
@@ -251,9 +251,9 @@ public class EyesSpawningManager
             double pZ = pos.getZ() + 0.5D;
 
             double distanceSq = player.distanceToSqr(pX, pY, pZ);
-            if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesEntity.TYPE, pos, distanceSq))
+            if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesInTheDarkness.EYES.get(), pos, distanceSq))
             {
-                EyesEntity entity = EyesEntity.TYPE.create(parent, null, null, null, pos, MobSpawnType.NATURAL, false, false);
+                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, null, null, pos, MobSpawnType.NATURAL, false, false);
                 if (entity == null)
                     continue;
 
@@ -278,7 +278,7 @@ public class EyesSpawningManager
             return false;
         }
 
-        if (!BiomeRules.isBiomeAllowed(serverWorld.getBiome(pos)))
+        if (!BiomeRules.isBiomeAllowed(serverWorld, serverWorld.getBiome(pos)))
         {
             return false;
         }

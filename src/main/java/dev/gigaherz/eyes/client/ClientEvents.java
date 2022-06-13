@@ -13,7 +13,7 @@ public class ClientEvents
     @SubscribeEvent
     public static void registerEntityRenders(final EntityRenderersEvent.RegisterRenderers event)
     {
-        event.registerEntityRenderer(EyesEntity.TYPE, EyesRenderer::new);
+        event.registerEntityRenderer(EyesInTheDarkness.EYES.get(), EyesRenderer::new);
     }
 
     /* *\/

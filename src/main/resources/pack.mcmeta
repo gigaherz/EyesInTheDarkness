@@ -1,6 +1,8 @@
 {
   "pack":{
-    "pack_format":4,
-    "description":"Eyes in the Darkness Mod"
+    "description":"Eyes in the Darkness Mod",
+    "pack_format": 9,
+    "forge:assets_pack_format": 9,
+    "forge:data_pack_format": 10
   }
 }

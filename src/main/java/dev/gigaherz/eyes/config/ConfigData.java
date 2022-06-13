@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.monster.Monster;
@@ -302,7 +303,7 @@ public class ConfigData
         return defaultSupplier.get();
     }
 
-    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, ServerLevelAccessor world, MobSpawnType reason, BlockPos pos, Random random)
+    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, ServerLevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource random)
     {
         return Monster.checkMonsterSpawnRules(entityType, world, reason, pos, random);
     }

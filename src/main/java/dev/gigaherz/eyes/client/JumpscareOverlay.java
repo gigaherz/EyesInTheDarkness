@@ -70,7 +70,7 @@ public class JumpscareOverlay extends GuiComponent implements IIngameOverlay
         if (ConfigData.jumpscareClient)
         {
             visible = true;
-            mc.level.playLocalSound(ex, ey, ez, EyesInTheDarkness.eyes_jumpscare, SoundSource.HOSTILE, getJumpscareVolume(), 1, false);
+            mc.level.playLocalSound(ex, ey, ez, EyesInTheDarkness.EYES_JUMPSCARE.get(), SoundSource.HOSTILE, getJumpscareVolume(), 1, false);
         }
     }
 

@@ -16,10 +16,9 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.NonNullLazy;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -27,11 +26,14 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-import net.minecraftforge.registries.ObjectHolder;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,19 +47,29 @@ public class EyesInTheDarkness
 
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
-    @ObjectHolder(MODID + ":eyes_laugh")
-    public static SoundEvent eyes_laugh;
+    private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
+    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITIES, MODID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
-    @ObjectHolder(MODID + ":eyes_disappear")
-    public static SoundEvent eyes_disappear;
+    public static final RegistryObject<SoundEvent> EYES_LAUGH = SOUND_EVENTS.register("eyes_laugh", () -> new SoundEvent(location("mob.eyes.laugh")));
+    public static final RegistryObject<SoundEvent> EYES_DISAPPEAR = SOUND_EVENTS.register("eyes_disappear", () -> new SoundEvent(location("mob.eyes.disappear")));
+    public static final RegistryObject<SoundEvent> EYES_JUMPSCARE = SOUND_EVENTS.register("eyes_jumpscare", () -> new SoundEvent(location("mob.eyes.jumpscare")));
 
-    @ObjectHolder(MODID + ":eyes_jumpscare")
-    public static SoundEvent eyes_jumpscare;
+    public static final RegistryObject<EntityType<EyesEntity>> EYES = ENTITY_TYPES.register("eyes", () ->
+            EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
+            .setTrackingRange(80)
+            .setUpdateInterval(3)
+            .setCustomClientFactory((ent, world) -> EyesInTheDarkness.EYES.get().create(world))
+            .setShouldReceiveVelocityUpdates(true)
+            .build(MODID + ":eyes"));
 
-    private static final String CHANNEL = "main";
+    public static final RegistryObject<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
+            new ForgeSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+
     private static final String PROTOCOL_VERSION = "1.0";
-    public static SimpleChannel channel = NetworkRegistry.ChannelBuilder
-            .named(location(CHANNEL))
+    public static final SimpleChannel channel = NetworkRegistry.ChannelBuilder
+            .named(location("main"))
             .clientAcceptedVersions(PROTOCOL_VERSION::equals)
             .serverAcceptedVersions(PROTOCOL_VERSION::equals)
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
@@ -68,9 +80,11 @@ public class EyesInTheDarkness
         final ModLoadingContext modLoadingContext = ModLoadingContext.get();
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        modEventBus.addGenericListener(SoundEvent.class, this::registerSounds);
-        modEventBus.addGenericListener(EntityType.class, this::registerEntities);
-        modEventBus.addGenericListener(Item.class, this::registerItems);
+        SOUND_EVENTS.register(modEventBus);
+        ENTITY_TYPES.register(modEventBus);
+        ITEMS.register(modEventBus);
+
+        modEventBus.addListener(this::construct);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::entityAttributes);
         modEventBus.addListener(this::registerCapabilities);
@@ -81,47 +95,20 @@ public class EyesInTheDarkness
         MinecraftForge.EVENT_BUS.addListener(this::entityInit);
     }
 
-    public void registerSounds(RegistryEvent.Register<SoundEvent> event)
+    public void construct(FMLConstructModEvent event)
     {
-        event.getRegistry().registerAll(
-                new SoundEvent(location("mob.eyes.laugh")).setRegistryName(location("eyes_laugh")),
-                new SoundEvent(location("mob.eyes.disappear")).setRegistryName(location("eyes_disappear")),
-                new SoundEvent(location("mob.eyes.jumpscare")).setRegistryName(location("eyes_jumpscare"))
-        );
-    }
-
-    /*The EntityType is static-initialized because of the spawnEgg, which needs a nonnull EntityType by the time it is registered.*/
-    /*If Forge moves/patches spawnEggs to use a delegate, remove this hack in favor of the ObjectHolder.*/
-    private static final NonNullLazy<EntityType<EyesEntity>> eyesInit = NonNullLazy.of(() -> EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
-            .setTrackingRange(80)
-            .setUpdateInterval(3)
-            .setCustomClientFactory((ent, world) -> EyesEntity.TYPE.create(world))
-            .setShouldReceiveVelocityUpdates(true)
-            .build(MODID + ":eyes"));
-
-    public void registerEntities(RegistryEvent.Register<EntityType<?>> event)
-    {
-        event.getRegistry().registerAll(
-                eyesInit.get().setRegistryName(MODID + ":eyes")
-        );
-
-        SpawnPlacements.register(
-                eyesInit.get(),
-                SpawnPlacements.Type.NO_RESTRICTIONS,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                ConfigData::canEyesSpawnAt);
+        event.enqueueWork(() -> {
+            SpawnPlacements.register(
+                    EYES.get(),
+                    SpawnPlacements.Type.NO_RESTRICTIONS,
+                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    ConfigData::canEyesSpawnAt);
+        });
     }
 
     public void entityAttributes(EntityAttributeCreationEvent event)
     {
-        event.put(EyesEntity.TYPE, EyesEntity.prepareAttributes().build());
-    }
-
-    public void registerItems(RegistryEvent.Register<Item> event)
-    {
-        event.getRegistry().registerAll(
-                new SpawnEggItem(eyesInit.get(), 0x000000, 0x7F0000, new Item.Properties().tab(CreativeModeTab.TAB_MISC)).setRegistryName(location("eyes_spawn_egg"))
-        );
+        event.put(EYES.get(), EyesEntity.prepareAttributes().build());
     }
 
     public void registerCapabilities(RegisterCapabilitiesEvent event)
