@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
-version = "1.3.0"
+version = "1.3.5"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
@@ -65,7 +65,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19-41.0.22'
+    minecraft 'net.minecraftforge:forge:1.19-41.0.94'
 }
 
 jar {

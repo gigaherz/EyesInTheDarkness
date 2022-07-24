@@ -8,6 +8,7 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.item.Item;
@@ -20,7 +21,9 @@ import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -48,7 +51,7 @@ public class EyesInTheDarkness
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
-    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITIES, MODID);
+    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
     public static final RegistryObject<SoundEvent> EYES_LAUGH = SOUND_EVENTS.register("eyes_laugh", () -> new SoundEvent(location("mob.eyes.laugh")));
@@ -125,18 +128,19 @@ public class EyesInTheDarkness
         LOGGER.debug("Final message number: " + messageNumber);
     }
 
-    public void entityInit(EntityJoinWorldEvent event)
+    public void entityInit(LivingSpawnEvent.SpecialSpawn event)
     {
         Entity e = event.getEntity();
-        if (e instanceof Wolf)
+        if (e instanceof Wolf wolf)
         {
-            Wolf wolf = (Wolf) e;
-            wolf.targetSelector.addGoal(5,
-                    new NearestAttackableTargetGoal<>(wolf, EyesEntity.class, false));
+            wolf.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(wolf, EyesEntity.class, false));
         }
-        if (e instanceof Ocelot)
+        if (e instanceof Ocelot cat)
         {
-            Ocelot cat = (Ocelot) e;
+            cat.goalSelector.addGoal(3, new AvoidEntityGoal<>(cat, EyesEntity.class, 6.0F, 1.0D, 1.2D));
+        }
+        if (e instanceof Cat cat)
+        {
             cat.goalSelector.addGoal(3, new AvoidEntityGoal<>(cat, EyesEntity.class, 6.0F, 1.0D, 1.2D));
         }
     }

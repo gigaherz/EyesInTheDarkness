@@ -75,11 +75,11 @@ public class EyesSpawningManager
         }
     }
 
-    private static void onWorldTick(TickEvent.WorldTickEvent event)
+    private static void onWorldTick(TickEvent.LevelTickEvent event)
     {
-        if (event.world.isClientSide) return;
+        if (event.level.isClientSide) return;
         if (event.phase != TickEvent.Phase.START) return;
-        event.world.getCapability(INSTANCE).ifPresent(EyesSpawningManager::tick);
+        event.level.getCapability(INSTANCE).ifPresent(EyesSpawningManager::tick);
     }
 
     private final Stopwatch watch = Stopwatch.createUnstarted();

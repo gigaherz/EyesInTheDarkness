@@ -13,9 +13,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.IIngameOverlay;
-import net.minecraftforge.client.gui.OverlayRegistry;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,7 +24,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.MOD)
-public class JumpscareOverlay extends GuiComponent implements IIngameOverlay
+public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
 {
     private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
     private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
@@ -50,9 +51,9 @@ public class JumpscareOverlay extends GuiComponent implements IIngameOverlay
             + ANIMATION_SCARE1 + ANIMATION_FADE;
 
     @SubscribeEvent
-    public static void register(FMLClientSetupEvent event)
+    public static void register(RegisterGuiOverlaysEvent event)
     {
-        OverlayRegistry.registerOverlayAbove(ForgeIngameGui.PORTAL_ELEMENT, "Eyes in the Darkness Jumpscare", INSTANCE);
+        event.registerAbove(VanillaGuiOverlay.PORTAL.id(), "jumpscare", INSTANCE);
     }
 
     private Minecraft mc;
@@ -95,7 +96,7 @@ public class JumpscareOverlay extends GuiComponent implements IIngameOverlay
 
 
     @Override
-    public void render(ForgeIngameGui gui, PoseStack poseStack, float partialTicks, int width, int height)
+    public void render(ForgeGui gui, PoseStack poseStack, float partialTicks, int width, int height)
     {
         if (!visible) return;
 
