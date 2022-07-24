@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import javax.annotation.Nullable;
@@ -92,20 +93,20 @@ public class BiomeRules
             {
                 ResourceKey<Biome> name = biome.unwrap().map(key -> key,
                         value -> ResourceKey.create(Registry.BIOME_REGISTRY, Objects.requireNonNull(value.getRegistryName())));
-                return BiomeDictionary.hasType(name, labelType) == allow;
+                return BiomeDictionary.hasType(name, labelType);
             }
             else if (registryName != null)
             {
                 ResourceLocation name = biome.unwrap().map(ResourceKey::location, ForgeRegistryEntry::getRegistryName);
-                return registryName.equals(name) == allow;
+                return registryName.equals(name);
             }
             else if(tagKey != null)
             {
-                return biome.is(tagKey) == allow;
+                return biome.is(tagKey);
             }
             else
             {
-                return allow;
+                return true;
             }
         }
     }

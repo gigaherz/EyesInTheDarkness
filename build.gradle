@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
-version = "1.2.5"
+version = "1.2.7"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
@@ -35,10 +35,8 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            property 'forge.logging.noansi', "false"
-            property 'legacyClassPath', '{minecraft_classpath}'
 
-            ideaModule "${project.name}.main"
+            jvmArgs '-Xmx4G'
 
             mods {
                 thismod {
@@ -52,9 +50,6 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            property 'forge.logging.noansi', "false"
-
-            ideaModule "${project.name}.main"
 
             mods {
                 thismod {
@@ -70,7 +65,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.0.2'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.31'
 }
 
 jar {

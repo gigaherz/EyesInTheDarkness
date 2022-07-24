@@ -78,7 +78,7 @@ public class DimensionRules
         public boolean test(ServerLevel world)
         {
             if (name == null)
-                return allow;
+                return true;
             if (isType)
             {
                 return name.equals(world.registryAccess().registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY).getKey(world.dimensionType()));

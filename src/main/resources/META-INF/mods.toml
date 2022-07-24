@@ -1,25 +1,23 @@
 modLoader="javafml"
 loaderVersion="[38,)"
 license="BSD (3 clause)"
+issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
 
 [[mods]]
 modId="eyesinthedarkness"
 version="${file.jarVersion}"
 displayName="Eyes in the Darkness"
-credits="The Forge and FML guys, for making the awesome modding environment"
 authors="gigaherz"
 description='''
 Those eyes you think you saw when walking through the forest at night. No, you did not imagine them.
 '''
-#updateJSONURL=""
-issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
 displayURL="https://github.com/gigaherz/EyesInTheDarkness"
 logoFile="logo.png"
 
 [[dependencies.eyesinthedarkness]]
    modId="forge"
    mandatory=true
-   versionRange="[38.0.10,)"
+   versionRange="[40.1.0,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]
