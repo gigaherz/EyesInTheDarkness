@@ -199,7 +199,6 @@ public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
     private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
     {
         RenderSystem.enableBlend();
-        RenderSystem.disableTexture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -216,7 +215,6 @@ public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
         buffer.vertex(matrix, targetX + targetW, targetY, 0).uv((tx + tw) / texW, ty / texH).endVertex();
         tessellator.end();
 
-        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
     }
 
@@ -228,7 +226,6 @@ public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
         int b = (color >> 0) & 255;
 
         RenderSystem.enableBlend();
-        RenderSystem.enableTexture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

@@ -160,7 +160,7 @@ public class EyesEntity extends Monster
 
     public void jumpscare(ServerPlayer player)
     {
-        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()), player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()), player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     @Override
@@ -268,7 +268,7 @@ public class EyesEntity extends Monster
 
     private void disappear(boolean playDeathSound)
     {
-        actuallyHurt(DamageSource.GENERIC, 1);
+        actuallyHurt(damageSources().generic(), 1);
         if (playDeathSound)
         {
             this.playSound(getDeathSound(), this.getDisappearVolume(), this.getVoicePitch());
@@ -332,7 +332,7 @@ public class EyesEntity extends Monster
      */
     public BlockPos getBlockPosEyes()
     {
-        return new BlockPos(this.getX(), this.getY() + getEyeHeight(), this.getZ());
+        return BlockPos.containing(this.getX(), this.getY() + getEyeHeight(), this.getZ());
     }
 
     @Override

@@ -9,11 +9,9 @@ buildscript {
         classpath 'org.parchmentmc:librarian:1.+'
     }
 }
-
 apply plugin: 'net.minecraftforge.gradle'
-//Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'maven-publish'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
+apply plugin: 'maven-publish'
 
 version = "1.3.7"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -26,8 +24,8 @@ project.afterEvaluate {
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    //mappings channel: 'parchment', version: '2021.12.19-1.18.1'
-    mappings channel: 'official', version: '1.19.3'
+    //mappings channel: 'official', version: '1.19.4'
+    mappings channel: 'parchment', version: '1.19.3-2023.03.12-1.19.4'
 
     runs {
         client {
@@ -65,7 +63,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.3-44.1.0'
+    minecraft 'net.minecraftforge:forge:1.19.4-45.0.9'
 }
 
 jar {
