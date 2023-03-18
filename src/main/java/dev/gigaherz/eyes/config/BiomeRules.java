@@ -3,6 +3,7 @@ package dev.gigaherz.eyes.config;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -87,7 +88,7 @@ public class BiomeRules
         {
             this.allow = allow;
             this.registryName = registryName != null ? new ResourceLocation(registryName) : null;
-            this.tagKey = tagName != null ? TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(tagName)) : null;
+            this.tagKey = tagName != null ? TagKey.create(Registries.BIOME, new ResourceLocation(tagName)) : null;
         }
 
         public boolean test(ServerLevel level, Holder<Biome> biome)
@@ -96,7 +97,7 @@ public class BiomeRules
             {
                 ResourceLocation name = biome.unwrap().map(
                         ResourceKey::location,
-                        b -> level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getKey(b));
+                        b -> level.registryAccess().registryOrThrow(Registries.BIOME).getKey(b));
                 return registryName.equals(name);
             }
             else if(tagKey != null)

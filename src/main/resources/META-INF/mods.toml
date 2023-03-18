@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[41,)"
+loaderVersion="[44,)"
 license="BSD (3 clause)"
 issueTrackerURL="https://github.com/gigaherz/EyesInTheDarkness/issues"
 
@@ -17,12 +17,12 @@ logoFile="logo.png"
 [[dependencies.eyesinthedarkness]]
    modId="forge"
    mandatory=true
-   versionRange="[41.0.94,)"
+   versionRange="[44.0.6,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]
    modId="minecraft"
    mandatory=true
-   versionRange="[1.19,1.20)"
+   versionRange="[1.19.3,1.20)"
    ordering="NONE"
    side="BOTH"

@@ -2,6 +2,7 @@ package dev.gigaherz.eyes.config;
 
 import com.google.common.collect.Lists;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 
@@ -81,7 +82,7 @@ public class DimensionRules
                 return true;
             if (isType)
             {
-                return name.equals(world.registryAccess().registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY).getKey(world.dimensionType()));
+                return name.equals(world.registryAccess().registryOrThrow(Registries.DIMENSION_TYPE).getKey(world.dimensionType()));
             }
             else
             {

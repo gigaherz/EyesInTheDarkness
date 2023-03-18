@@ -11,6 +11,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.SpawnEggItem;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -54,9 +56,9 @@ public class EyesInTheDarkness
     private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
-    public static final RegistryObject<SoundEvent> EYES_LAUGH = SOUND_EVENTS.register("eyes_laugh", () -> new SoundEvent(location("mob.eyes.laugh")));
-    public static final RegistryObject<SoundEvent> EYES_DISAPPEAR = SOUND_EVENTS.register("eyes_disappear", () -> new SoundEvent(location("mob.eyes.disappear")));
-    public static final RegistryObject<SoundEvent> EYES_JUMPSCARE = SOUND_EVENTS.register("eyes_jumpscare", () -> new SoundEvent(location("mob.eyes.jumpscare")));
+    public static final RegistryObject<SoundEvent> EYES_LAUGH = SOUND_EVENTS.register("eyes_laugh", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.laugh")));
+    public static final RegistryObject<SoundEvent> EYES_DISAPPEAR = SOUND_EVENTS.register("eyes_disappear", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.disappear")));
+    public static final RegistryObject<SoundEvent> EYES_JUMPSCARE = SOUND_EVENTS.register("eyes_jumpscare", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.jumpscare")));
 
     public static final RegistryObject<EntityType<EyesEntity>> EYES = ENTITY_TYPES.register("eyes", () ->
             EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
@@ -67,7 +69,7 @@ public class EyesInTheDarkness
             .build(MODID + ":eyes"));
 
     public static final RegistryObject<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
-            new ForgeSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+            new ForgeSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties()));
 
 
     private static final String PROTOCOL_VERSION = "1.0";
@@ -91,11 +93,20 @@ public class EyesInTheDarkness
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::entityAttributes);
         modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(this::addItemsToTabs);
 
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::entityInit);
+    }
+
+    private void addItemsToTabs(CreativeModeTabEvent.BuildContents event)
+    {
+        if (event.getTab() == CreativeModeTabs.SPAWN_EGGS)
+        {
+            event.accept(EYES_EGG);
+        }
     }
 
     public void construct(FMLConstructModEvent event)

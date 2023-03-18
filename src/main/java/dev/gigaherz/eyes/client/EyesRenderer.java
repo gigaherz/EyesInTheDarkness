@@ -13,8 +13,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import com.mojang.math.Matrix4f;
 import net.minecraft.world.level.LightLayer;
+import org.joml.Matrix4f;
 
 public class EyesRenderer extends EntityRenderer<EyesEntity>
 {
@@ -27,7 +27,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
     }
 
     @Override
-    public void render(EyesEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource bufferIn, int packedLightIn)
+    public void render(EyesEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn)
     {
         BlockPos position = entity.getBlockPosEyes();
 
@@ -46,9 +46,9 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         if (mixAlpha <= 0)
             return;
 
-        matrixStack.pushPose();
-        matrixStack.translate(0, entity.getEyeHeight(), 0);
-        matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+        poseStack.pushPose();
+        poseStack.translate(0, entity.getEyeHeight(), 0);
+        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
 
         float aggro = entity.getAggroLevel();
 
@@ -65,7 +65,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
         int packedLightmapCoords = 0x00F000F0;
         VertexConsumer buffer = bufferIn.getBuffer(renderType);
-        Matrix4f matrix = matrixStack.last().pose();
+        Matrix4f matrix = poseStack.last().pose();
         buffer.vertex(matrix, -w, -h, 0)
                 .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .uv(0, hoff + th)
@@ -95,9 +95,9 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
                 .normal(0, 0, 1)
                 .endVertex();
 
-        matrixStack.popPose();
+        poseStack.popPose();
 
-        super.render(entity, entityYaw, partialTicks, matrixStack, bufferIn, packedLightIn);
+        super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightIn);
     }
 
     private float getBlinkState(EyesEntity entity, float partialTicks, float th)

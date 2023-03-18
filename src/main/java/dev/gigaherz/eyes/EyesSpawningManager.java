@@ -253,7 +253,7 @@ public class EyesSpawningManager
             double distanceSq = player.distanceToSqr(pX, pY, pZ);
             if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesInTheDarkness.EYES.get(), pos, distanceSq))
             {
-                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, null, null, pos, MobSpawnType.NATURAL, false, false);
+                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, null, pos, MobSpawnType.NATURAL, false, false);
                 if (entity == null)
                     continue;
 

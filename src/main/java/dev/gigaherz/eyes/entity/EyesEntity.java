@@ -3,6 +3,7 @@ package dev.gigaherz.eyes.entity;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.InitiateJumpscarePacket;
 import dev.gigaherz.eyes.config.ConfigData;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -335,9 +336,10 @@ public class EyesEntity extends Monster
     }
 
     @Override
-    public Packet<?> getAddEntityPacket()
+    public Packet<ClientGamePacketListener> getAddEntityPacket()
     {
-        return NetworkHooks.getEntitySpawningPacket(this);
+        //noinspection unchecked
+        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public float getSunBrightness()
