@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +24,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.joml.Matrix4f;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.MOD)
-public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
+public class JumpscareOverlay implements IGuiOverlay
 {
     private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
     private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
@@ -96,7 +96,7 @@ public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
 
 
     @Override
-    public void render(ForgeGui gui, PoseStack poseStack, float partialTicks, int width, int height)
+    public void render(ForgeGui gui, GuiGraphics graphics, float partialTicks, int width, int height)
     {
         if (!visible) return;
 
@@ -110,6 +110,8 @@ public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
             progress = 0;
             return;
         }
+
+        var poseStack = graphics.pose();
 
         RenderSystem.clear(256, false);
         poseStack.pushPose();
@@ -157,9 +159,7 @@ public class JumpscareOverlay extends GuiComponent implements IGuiOverlay
         }
         else
         {
-            // FIXME
-            PoseStack temp = new PoseStack();
-            fill(temp, 0, 0, screenWidth, screenHeight, alpha << 24);
+            graphics.fill(0, 0, screenWidth, screenHeight, alpha << 24);
         }
 
         if (blinkstate != 1)

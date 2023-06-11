@@ -20,15 +20,15 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
@@ -86,7 +86,7 @@ public class EyesInTheDarkness
         ENTITY_TYPES.register(modEventBus);
         ITEMS.register(modEventBus);
 
-        modEventBus.addListener(this::construct);
+        modEventBus.addListener(this::spawnPlacement);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::entityAttributes);
         modEventBus.addListener(this::registerCapabilities);
@@ -98,23 +98,22 @@ public class EyesInTheDarkness
         MinecraftForge.EVENT_BUS.addListener(this::entityInit);
     }
 
-    private void addItemsToTabs(CreativeModeTabEvent.BuildContents event)
+    private void addItemsToTabs(BuildCreativeModeTabContentsEvent event)
     {
-        if (event.getTab() == CreativeModeTabs.SPAWN_EGGS)
+        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS)
         {
             event.accept(EYES_EGG);
         }
     }
 
-    public void construct(FMLConstructModEvent event)
+    public void spawnPlacement(SpawnPlacementRegisterEvent event)
     {
-        event.enqueueWork(() -> {
-            SpawnPlacements.register(
-                    EYES.get(),
-                    SpawnPlacements.Type.NO_RESTRICTIONS,
-                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                    ConfigData::canEyesSpawnAt);
-        });
+        event.register(
+                EYES.get(),
+                SpawnPlacements.Type.NO_RESTRICTIONS,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                ConfigData::canEyesSpawnAt,
+                SpawnPlacementRegisterEvent.Operation.AND);
     }
 
     public void entityAttributes(EntityAttributeCreationEvent event)

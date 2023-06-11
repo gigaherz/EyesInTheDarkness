@@ -31,12 +31,12 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
     {
         BlockPos position = entity.getBlockPosEyes();
 
-        float blockLight = entity.level.getBrightness(LightLayer.BLOCK, position);
+        float blockLight = entity.level().getBrightness(LightLayer.BLOCK, position);
 
-        if (entity.level.dimensionType().hasSkyLight())
+        if (entity.level().dimensionType().hasSkyLight())
         {
-            float skyLight = entity.level.getBrightness(LightLayer.SKY, position)
-                    - (1 - ((ClientLevel) entity.level).getSkyDarken(partialTicks)) * 11;
+            float skyLight = entity.level().getBrightness(LightLayer.SKY, position)
+                    - (1 - ((ClientLevel) entity.level()).getSkyDarken(partialTicks)) * 11;
 
             blockLight = Math.max(blockLight, skyLight);
         }
