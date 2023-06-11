@@ -2,10 +2,12 @@ package dev.gigaherz.eyes;
 
 import dev.gigaherz.eyes.config.ConfigData;
 import dev.gigaherz.eyes.entity.EyesEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Cat;
@@ -13,19 +15,14 @@ import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.SpawnEggItem;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -134,12 +131,12 @@ public class EyesInTheDarkness
     {
         int messageNumber = 0;
         channel.messageBuilder(InitiateJumpscarePacket.class, messageNumber++, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(InitiateJumpscarePacket::encode).decoder(InitiateJumpscarePacket::new).consumer(InitiateJumpscarePacket::handle)
+                .encoder(InitiateJumpscarePacket::encode).decoder(InitiateJumpscarePacket::new).consumerNetworkThread(InitiateJumpscarePacket::handle)
                 .add();
         LOGGER.debug("Final message number: " + messageNumber);
     }
 
-    public void entityInit(LivingSpawnEvent.SpecialSpawn event)
+    public void entityInit(MobSpawnEvent.FinalizeSpawn event)
     {
         Entity e = event.getEntity();
         if (e instanceof Wolf wolf)

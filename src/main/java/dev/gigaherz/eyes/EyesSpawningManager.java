@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.GameRules;
@@ -24,6 +25,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
@@ -257,8 +259,7 @@ public class EyesSpawningManager
                 if (entity == null)
                     continue;
 
-                int canSpawn = net.minecraftforge.common.ForgeHooks.canEntitySpawn(entity, parent, pX, pY, pZ, null, MobSpawnType.NATURAL);
-                if (canSpawn != -1 && (canSpawn == 1 || entity.checkSpawnRules(parent, MobSpawnType.NATURAL) && entity.checkSpawnObstruction(parent)))
+                if (entity.checkSpawnRules(parent, MobSpawnType.NATURAL) && entity.checkSpawnObstruction(parent))
                 {
                     parent.addFreshEntity(entity);
 
