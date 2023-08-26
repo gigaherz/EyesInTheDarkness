@@ -19,7 +19,7 @@ import org.joml.Matrix4f;
 public class EyesRenderer extends EntityRenderer<EyesEntity>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
-    private final RenderType renderType = RenderType.entityTranslucent(TEXTURE);
+    private final RenderType renderType = RenderType.eyes(TEXTURE);
 
     public EyesRenderer(EntityRendererProvider.Context context)
     {
@@ -27,7 +27,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
     }
 
     @Override
-    public void render(EyesEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn)
+    public void render(EyesEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightmapCoords)
     {
         BlockPos position = entity.getBlockPosEyes();
 
@@ -63,7 +63,6 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         float hoff = getBlinkState(entity, partialTicks, th);
 
         int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
-        int packedLightmapCoords = 0x00F000F0;
         VertexConsumer buffer = bufferIn.getBuffer(renderType);
         Matrix4f matrix = poseStack.last().pose();
         buffer.vertex(matrix, -w, -h, 0)
@@ -97,7 +96,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
 
         poseStack.popPose();
 
-        super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightIn);
+        super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightmapCoords);
     }
 
     private float getBlinkState(EyesEntity entity, float partialTicks, float th)
