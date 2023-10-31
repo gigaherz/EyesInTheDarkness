@@ -131,16 +131,13 @@ public class ConfigData
                                 "Rules:",
                                 "  \"biome:name\"    -- ALLOWS spawning in the given biome.",
                                 "  \"!biome:name\"   -- DISALLOWS spawning in the given biome.",
-                                "  \"#biome_label\"  -- ALLOWS spawning in the given biome dictionary label.",
-                                "  \"!#biome_label\" -- DISALLOWS spawning in the given biome dictionary label.",
-                                "  \"$biome_label\"  -- ALLOWS spawning in the given biome tag.",
-                                "  \"!$biome_label\" -- DISALLOWS spawning in the given biome tag.",
+                                "  \"#biome_label\"  -- ALLOWS spawning in the given biome tag.",
+                                "  \"!#biome_label\" -- DISALLOWS spawning in the given biome tag.",
                                 "  \"!*\"            -- DISALLOWS spawning unconditionally. Place this at the end of the list to disable spawning if no other rules pass (defaults to allow otherwise).",
                                 "Examples:",
-                                "  To disable spawning in the end: [ \"!#END\" ]",
+                                "  To disable spawning in the end: [ \"!#minecraft:is_end\" ]",
                                 "  To disable spawning in the nether biome: [ \"!minecraft:nether\" ]",
-                                "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#FOREST\" ]",
-                                "NOTE: VOID type biomes are disabled by default, internally. You can explicitly enable those by adding \"#VOID\" to the rules, but this is not recommended."
+                                "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#minecraft:is_forest\" ]"
                         ).defineList("BiomeRules", Lists.newArrayList(), o -> o instanceof String);
                 dimensionRules = builder
                         .comment(

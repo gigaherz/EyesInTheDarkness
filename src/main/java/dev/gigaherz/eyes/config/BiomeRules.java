@@ -54,12 +54,7 @@ public class BiomeRules
             allow = false;
             rule = rule.substring(1);
         }
-        if (rule.startsWith("#"))
-        {
-            LOGGER.warn("Invalid biome rule. Dictionary labels don't exist anymore! Please use tag rules instead.");
-            return null;
-        }
-        else if (rule.startsWith("$"))
+        if (rule.startsWith("#") || rule.startsWith("$"))
         {
             return new Rule(allow, null, rule.substring(1));
         }
