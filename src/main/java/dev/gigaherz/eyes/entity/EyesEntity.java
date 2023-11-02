@@ -29,13 +29,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.NetworkHooks;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkHooks;
-
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
@@ -47,6 +45,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnGroupData;
+import net.neoforged.neoforge.network.PlayNetworkDirection;
 
 public class EyesEntity extends Monster
 {
@@ -160,7 +159,7 @@ public class EyesEntity extends Monster
 
     public void jumpscare(ServerPlayer player)
     {
-        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()), player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()), player.connection.connection, PlayNetworkDirection.PLAY_TO_CLIENT);
     }
 
     @Override

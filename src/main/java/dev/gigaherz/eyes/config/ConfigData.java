@@ -9,11 +9,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -26,60 +26,60 @@ import java.util.function.Supplier;
 public class ConfigData
 {
     private static final ServerConfig SERVER;
-    public static final ForgeConfigSpec SERVER_SPEC;
+    public static final ModConfigSpec SERVER_SPEC;
 
     static
     {
-        final Pair<ServerConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ServerConfig::new);
+        final Pair<ServerConfig, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(ServerConfig::new);
         SERVER_SPEC = specPair.getRight();
         SERVER = specPair.getLeft();
     }
 
     private static final ClientConfig CLIENT;
-    public static final ForgeConfigSpec CLIENT_SPEC;
+    public static final ModConfigSpec CLIENT_SPEC;
 
     static
     {
-        final Pair<ClientConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
+        final Pair<ClientConfig, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(ClientConfig::new);
         CLIENT_SPEC = specPair.getRight();
         CLIENT = specPair.getLeft();
     }
 
     private static class ServerConfig
     {
-        public final ForgeConfigSpec.BooleanValue jumpscare;
-        public final ForgeConfigSpec.IntValue jumpscareHurtLevel;
-        public final ForgeConfigSpec.BooleanValue eyesCanAttackWhileLit;
-        public final ForgeConfigSpec.BooleanValue enableEyeAggressionEscalation;
-        public final ForgeConfigSpec.BooleanValue eyeAggressionDependsOnLocalDifficulty;
-        public final ForgeConfigSpec.BooleanValue eyeAggressionDependsOnLightLevel;
-        public final ForgeConfigSpec.DoubleValue eyeIdleVolume;
-        public final ForgeConfigSpec.DoubleValue eyeDisappearVolume;
-        public final ForgeConfigSpec.DoubleValue eyeJumpscareVolume;
+        public final ModConfigSpec.BooleanValue jumpscare;
+        public final ModConfigSpec.IntValue jumpscareHurtLevel;
+        public final ModConfigSpec.BooleanValue eyesCanAttackWhileLit;
+        public final ModConfigSpec.BooleanValue enableEyeAggressionEscalation;
+        public final ModConfigSpec.BooleanValue eyeAggressionDependsOnLocalDifficulty;
+        public final ModConfigSpec.BooleanValue eyeAggressionDependsOnLightLevel;
+        public final ModConfigSpec.DoubleValue eyeIdleVolume;
+        public final ModConfigSpec.DoubleValue eyeDisappearVolume;
+        public final ModConfigSpec.DoubleValue eyeJumpscareVolume;
 
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> biomeRules;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> dimensionRules;
-        public final ForgeConfigSpec.BooleanValue enableNaturalSpawn;
-        public final ForgeConfigSpec.IntValue maxEyesSpawnDistance;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> biomeRules;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> dimensionRules;
+        public final ModConfigSpec.BooleanValue enableNaturalSpawn;
+        public final ModConfigSpec.IntValue maxEyesSpawnDistance;
 
-        public final ForgeConfigSpec.IntValue spawnCycleIntervalNormal;
-        public final ForgeConfigSpec.IntValue maxEyesAroundPlayerNormal;
-        public final ForgeConfigSpec.IntValue maxTotalEyesPerDimensionNormal;
+        public final ModConfigSpec.IntValue spawnCycleIntervalNormal;
+        public final ModConfigSpec.IntValue maxEyesAroundPlayerNormal;
+        public final ModConfigSpec.IntValue maxTotalEyesPerDimensionNormal;
 
-        public final ForgeConfigSpec.IntValue spawnCycleIntervalMidnight;
-        public final ForgeConfigSpec.IntValue maxEyesAroundPlayerMidnight;
-        public final ForgeConfigSpec.IntValue maxTotalEyesPerDimensionMidnight;
+        public final ModConfigSpec.IntValue spawnCycleIntervalMidnight;
+        public final ModConfigSpec.IntValue maxEyesAroundPlayerMidnight;
+        public final ModConfigSpec.IntValue maxTotalEyesPerDimensionMidnight;
 
-        public final ForgeConfigSpec.IntValue spawnCycleIntervalHalloween;
-        public final ForgeConfigSpec.IntValue maxEyesAroundPlayerHalloween;
-        public final ForgeConfigSpec.IntValue maxTotalEyesPerDimensionHalloween;
+        public final ModConfigSpec.IntValue spawnCycleIntervalHalloween;
+        public final ModConfigSpec.IntValue maxEyesAroundPlayerHalloween;
+        public final ModConfigSpec.IntValue maxTotalEyesPerDimensionHalloween;
 
-        public final ForgeConfigSpec.DoubleValue speedNoAggro;
-        public final ForgeConfigSpec.DoubleValue speedFullAggro;
+        public final ModConfigSpec.DoubleValue speedNoAggro;
+        public final ModConfigSpec.DoubleValue speedFullAggro;
 
-        public final ForgeConfigSpec.LongValue longSpawnCycleWarning;
+        public final ModConfigSpec.LongValue longSpawnCycleWarning;
 
-        ServerConfig(ForgeConfigSpec.Builder builder)
+        ServerConfig(ModConfigSpec.Builder builder)
         {
             builder.push("general");
             {
@@ -194,9 +194,9 @@ public class ConfigData
 
     private static class ClientConfig
     {
-        public final ForgeConfigSpec.BooleanValue jumpscare;
+        public final ModConfigSpec.BooleanValue jumpscare;
 
-        ClientConfig(ForgeConfigSpec.Builder builder)
+        ClientConfig(ModConfigSpec.Builder builder)
         {
             builder.push("general");
             jumpscare = builder.comment("Set to false to prevent jumpscares from displaying client-side.\n" +

@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.GameRules;
@@ -21,13 +20,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.*;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.capabilities.Capability;
+import net.neoforged.neoforge.common.capabilities.CapabilityManager;
+import net.neoforged.neoforge.common.capabilities.CapabilityToken;
+import net.neoforged.neoforge.common.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.util.LazyOptional;
+import net.neoforged.neoforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.event.TickEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,8 +53,8 @@ public class EyesSpawningManager
     {
         event.register(EyesSpawningManager.class);
 
-        MinecraftForge.EVENT_BUS.addGenericListener(Level.class, EyesSpawningManager::onCapabilityAttach);
-        MinecraftForge.EVENT_BUS.addListener(EyesSpawningManager::onWorldTick);
+        NeoForge.EVENT_BUS.addGenericListener(Level.class, EyesSpawningManager::onCapabilityAttach);
+        NeoForge.EVENT_BUS.addListener(EyesSpawningManager::onWorldTick);
     }
 
     private static void onCapabilityAttach(AttachCapabilitiesEvent<Level> event)
@@ -119,7 +121,7 @@ public class EyesSpawningManager
         return Math.abs(hour * 24 + minute);
     }
 
-    private static final Field f_spawnEnemies = ObfuscationReflectionHelper.findField(ServerChunkCache.class, "f_8335_");
+    private static final Field f_spawnEnemies = ObfuscationReflectionHelper.findField(ServerChunkCache.class, "spawnEnemies");
     private boolean isEnemySpawnEnabled()
     {
         try

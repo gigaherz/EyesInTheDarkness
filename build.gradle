@@ -1,69 +1,58 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.neoforged.net/' }
-        maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.neoforged', name: 'NeoGradle', version: '6.0.+', changing: true
-        classpath 'org.parchmentmc:librarian:1.+'
-    }
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.0.5'
+    //id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'net.neoforged.gradle.mixin' version '[7.0.5,)'
 }
-apply plugin: 'net.neoforged.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'maven-publish'
 
-version = "1.3.10"
+version = "1.4.0"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "EyesInTheDarkness-UNKNOWN"
 
+
+base {
+    archivesName = "EyesInTheDarkness-UNKNOWN"
+}
 project.afterEvaluate {
-    archivesBaseName = "EyesInTheDarkness-${project.MC_VERSION}"
+    base.archivesName = "EyesInTheDarkness-1.20.2"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-minecraft {
-    //mappings channel: 'official', version: '1.19.4'
-    mappings channel: 'parchment', version: '1.19.3-2023.03.12-1.20.1'
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
 
-    runs {
-        client {
-            workingDirectory project.file('run')
+runs {
+    // applies to all the run configs below
+    configureEach {
+        systemProperty 'forge.logging.markers', '' // 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
 
-            property 'forge.logging.markers', ''
-            property 'forge.logging.console.level', 'debug'
+        //ideaModule "${project.name}.main"
 
-            jvmArgs '-Xmx4G'
+        workingDirectory project.file('run')
 
-            mods {
-                thismod {
-                    source sourceSets.main
-                }
-            }
-        }
+        //programArguments.addAll "--mixin=jsonthings.mixins.json"
 
-        server {
-            workingDirectory project.file('run')
+        modSource project.sourceSets.main
+    }
 
-            property 'forge.logging.markers', ''
-            property 'forge.logging.console.level', 'debug'
+    client {
+    }
 
-            mods {
-                thismod {
-                    source sourceSets.main
-                }
-            }
-        }
+    server {
     }
 }
 
 repositories {
-    mavenLocal()
+    //mavenLocal()
 }
 
 dependencies {
-    minecraft 'net.neoforged:forge:1.20.1-47.1.65'
+    implementation 'net.neoforged:neoforge:20.2.16-beta'
 }
 
 jar {
@@ -81,5 +70,9 @@ jar {
                 "Implementation-Vendor" :"gigaherz",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
+    }
+
+    doLast {
+        jar.outputs.each {it.files.forEach {System.out.println(it)}}
     }
 }

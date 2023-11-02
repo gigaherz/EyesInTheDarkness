@@ -11,16 +11,15 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RegisterGuiOverlaysEvent;
+import net.neoforged.neoforge.client.gui.overlay.ExtendedGui;
+import net.neoforged.neoforge.client.gui.overlay.IGuiOverlay;
+import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.TickEvent;
 import org.joml.Matrix4f;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.MOD)
@@ -56,14 +55,14 @@ public class JumpscareOverlay implements IGuiOverlay
         event.registerAbove(VanillaGuiOverlay.PORTAL.id(), "jumpscare", INSTANCE);
     }
 
-    private Minecraft mc;
+    private final Minecraft mc;
     private boolean visible = false;
     private float progress = 0;
 
     private JumpscareOverlay()
     {
         mc = Minecraft.getInstance();
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.addListener(this::clientTick);
     }
 
     public void show(double ex, double ey, double ez)
@@ -80,7 +79,6 @@ public class JumpscareOverlay implements IGuiOverlay
         return (float)ConfigData.eyeIdleVolume;
     }
 
-    @SubscribeEvent
     public void clientTick(TickEvent.ClientTickEvent event)
     {
         if (visible)
@@ -96,7 +94,7 @@ public class JumpscareOverlay implements IGuiOverlay
 
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics graphics, float partialTicks, int width, int height)
+    public void render(ExtendedGui gui, GuiGraphics graphics, float partialTicks, int width, int height)
     {
         if (!visible) return;
 

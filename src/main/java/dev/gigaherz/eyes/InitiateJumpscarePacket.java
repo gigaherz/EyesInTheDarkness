@@ -2,8 +2,7 @@ package dev.gigaherz.eyes;
 
 import dev.gigaherz.eyes.client.ClientMessageHandler;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.neoforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class InitiateJumpscarePacket
@@ -33,9 +32,9 @@ public class InitiateJumpscarePacket
         buf.writeDouble(pz);
     }
 
-    public boolean handle(Supplier<NetworkEvent.Context> context)
+    public boolean handle(NetworkEvent.Context context)
     {
-        context.get().enqueueWork(() -> ClientMessageHandler.handleInitiateJumpscare(this));
+        context.enqueueWork(() -> ClientMessageHandler.handleInitiateJumpscare(this));
         return true;
     }
 }

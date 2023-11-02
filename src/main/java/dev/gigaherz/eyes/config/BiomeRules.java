@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import org.slf4j.Logger;
-
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
