@@ -2,6 +2,7 @@ package dev.gigaherz.eyes;
 
 import dev.gigaherz.eyes.config.ConfigData;
 import dev.gigaherz.eyes.entity.EyesEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
@@ -22,10 +23,8 @@ import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
@@ -33,9 +32,9 @@ import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.network.NetworkRegistry;
 import net.neoforged.neoforge.network.PlayNetworkDirection;
 import net.neoforged.neoforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.ForgeRegistries;
-import net.neoforged.neoforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,15 +48,15 @@ public class EyesInTheDarkness
 
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
-    private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
-    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
+    private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, MODID);
+    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, MODID);
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
 
-    public static final RegistryObject<SoundEvent> EYES_LAUGH = SOUND_EVENTS.register("eyes_laugh", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.laugh")));
-    public static final RegistryObject<SoundEvent> EYES_DISAPPEAR = SOUND_EVENTS.register("eyes_disappear", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.disappear")));
-    public static final RegistryObject<SoundEvent> EYES_JUMPSCARE = SOUND_EVENTS.register("eyes_jumpscare", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.jumpscare")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> EYES_LAUGH = SOUND_EVENTS.register("eyes_laugh", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.laugh")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> EYES_DISAPPEAR = SOUND_EVENTS.register("eyes_disappear", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.disappear")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> EYES_JUMPSCARE = SOUND_EVENTS.register("eyes_jumpscare", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.jumpscare")));
 
-    public static final RegistryObject<EntityType<EyesEntity>> EYES = ENTITY_TYPES.register("eyes", () ->
+    public static final DeferredHolder<EntityType<?>, EntityType<EyesEntity>> EYES = ENTITY_TYPES.register("eyes", () ->
             EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
             .setTrackingRange(80)
             .setUpdateInterval(3)
@@ -65,9 +64,8 @@ public class EyesInTheDarkness
             .setShouldReceiveVelocityUpdates(true)
             .build(MODID + ":eyes"));
 
-    public static final RegistryObject<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
+    public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
             new DeferredSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties()));
-
 
     private static final String PROTOCOL_VERSION = "1.0";
     public static final SimpleChannel channel = NetworkRegistry.ChannelBuilder
@@ -77,32 +75,29 @@ public class EyesInTheDarkness
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
             .simpleChannel();
 
-    public EyesInTheDarkness()
+    public EyesInTheDarkness(IEventBus modEventBus)
     {
-        final ModLoadingContext modLoadingContext = ModLoadingContext.get();
-        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         SOUND_EVENTS.register(modEventBus);
         ENTITY_TYPES.register(modEventBus);
         ITEMS.register(modEventBus);
 
-        modEventBus.addListener(this::spawnPlacement);
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::spawnPlacement);
         modEventBus.addListener(this::entityAttributes);
-        modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::addItemsToTabs);
 
+        final ModLoadingContext modLoadingContext = ModLoadingContext.get();
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
 
-        NeoForge.EVENT_BUS.addListener(this::entityInit);
+        NeoForge.EVENT_BUS.addListener(this::addGoalsToEntity);
     }
 
     private void addItemsToTabs(BuildCreativeModeTabContentsEvent event)
     {
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS)
         {
-            event.accept(EYES_EGG);
+            event.accept(EYES_EGG.get());
         }
     }
 
@@ -121,11 +116,6 @@ public class EyesInTheDarkness
         event.put(EYES.get(), EyesEntity.prepareAttributes().build());
     }
 
-    public void registerCapabilities(RegisterCapabilitiesEvent event)
-    {
-        EyesSpawningManager.init(event);
-    }
-
     public void commonSetup(FMLCommonSetupEvent event)
     {
         int messageNumber = 0;
@@ -135,7 +125,7 @@ public class EyesInTheDarkness
         LOGGER.debug("Final message number: " + messageNumber);
     }
 
-    public void entityInit(MobSpawnEvent.FinalizeSpawn event)
+    public void addGoalsToEntity(MobSpawnEvent.FinalizeSpawn event)
     {
         Entity e = event.getEntity();
         if (e instanceof Wolf wolf)

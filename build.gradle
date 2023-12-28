@@ -3,12 +3,11 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.5'
-    //id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'net.neoforged.gradle.mixin' version '[7.0.5,)'
+    id 'net.neoforged.gradle.userdev' version '7.0.61'
+    id 'net.neoforged.gradle.mixin' version '7.0.61'
 }
 
-version = "1.4.0"
+version = "1.4.1"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 
@@ -16,7 +15,7 @@ base {
     archivesName = "EyesInTheDarkness-UNKNOWN"
 }
 project.afterEvaluate {
-    base.archivesName = "EyesInTheDarkness-1.20.2"
+    base.archivesName = "EyesInTheDarkness-1.20.4"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
@@ -47,12 +46,14 @@ runs {
     }
 }
 
+minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
+
 repositories {
     //mavenLocal()
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:20.2.16-beta'
+    implementation 'net.neoforged:neoforge:20.4.60-beta'
 }
 
 jar {

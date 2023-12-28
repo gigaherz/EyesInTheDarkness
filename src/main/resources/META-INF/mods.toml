@@ -16,13 +16,13 @@ logoFile="logo.png"
 
 [[dependencies.eyesinthedarkness]]
    modId="neoforge"
-   mandatory=true
-   versionRange="[20.2.4,)"
+   type="required"
+   versionRange="[20.4.60-beta,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]
    modId="minecraft"
-   mandatory=true
+   type="required"
    versionRange="[1.20.2,1.21)"
    ordering="NONE"
    side="BOTH"

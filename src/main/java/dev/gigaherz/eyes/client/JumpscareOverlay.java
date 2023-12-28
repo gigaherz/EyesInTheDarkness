@@ -52,7 +52,7 @@ public class JumpscareOverlay implements IGuiOverlay
     @SubscribeEvent
     public static void register(RegisterGuiOverlaysEvent event)
     {
-        event.registerAbove(VanillaGuiOverlay.PORTAL.id(), "jumpscare", INSTANCE);
+        event.registerAbove(VanillaGuiOverlay.PORTAL.id(), EyesInTheDarkness.location("jumpscare"), INSTANCE);
     }
 
     private final Minecraft mc;

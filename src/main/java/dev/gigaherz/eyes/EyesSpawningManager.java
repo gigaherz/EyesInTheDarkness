@@ -1,13 +1,12 @@
 package dev.gigaherz.eyes;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import dev.gigaherz.eyes.config.BiomeRules;
 import dev.gigaherz.eyes.config.ConfigData;
 import dev.gigaherz.eyes.config.DimensionRules;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,76 +14,42 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.capabilities.Capability;
-import net.neoforged.neoforge.common.capabilities.CapabilityManager;
-import net.neoforged.neoforge.common.capabilities.CapabilityToken;
-import net.neoforged.neoforge.common.capabilities.ICapabilityProvider;
-import net.neoforged.neoforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.common.util.LazyOptional;
-import net.neoforged.neoforge.event.AttachCapabilitiesEvent;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class EyesSpawningManager
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.FORGE)
+public class EyesSpawningManager implements CustomSpawner
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static Capability<EyesSpawningManager> INSTANCE = CapabilityManager.get(new CapabilityToken<>(){});
-
-    private static final ResourceLocation CAP_KEY = new ResourceLocation("eyesinthedarkness:eyes_spawning_manager");
-
-    public static void init(RegisterCapabilitiesEvent event)
+    @SubscribeEvent
+    public static void levelLoad(LevelEvent.Load event)
     {
-        event.register(EyesSpawningManager.class);
-
-        NeoForge.EVENT_BUS.addGenericListener(Level.class, EyesSpawningManager::onCapabilityAttach);
-        NeoForge.EVENT_BUS.addListener(EyesSpawningManager::onWorldTick);
-    }
-
-    private static void onCapabilityAttach(AttachCapabilitiesEvent<Level> event)
-    {
-        Level eventWorld = event.getObject();
-        if (eventWorld instanceof ServerLevel)
+        if (event.getLevel() instanceof ServerLevel level)
         {
-            event.addCapability(CAP_KEY, new ICapabilityProvider()
-            {
-                final ServerLevel world = (ServerLevel) eventWorld;
-                final LazyOptional<EyesSpawningManager> supplier = LazyOptional.of(() -> new EyesSpawningManager(world));
-
-                @Nonnull
-                @Override
-                public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side)
-                {
-                    if (cap == INSTANCE)
-                        return supplier.cast();
-                    return LazyOptional.empty();
-                }
-            });
+            level.customSpawners = ImmutableList.<CustomSpawner>builder()
+                    .addAll(level.customSpawners)
+                    .add(new EyesSpawningManager(level))
+                    .build();
         }
     }
 
-    private static void onWorldTick(TickEvent.LevelTickEvent event)
-    {
-        if (event.level.isClientSide) return;
-        if (event.phase != TickEvent.Phase.START) return;
-        event.level.getCapability(INSTANCE).ifPresent(EyesSpawningManager::tick);
-    }
 
     private final Stopwatch watch = Stopwatch.createUnstarted();
     private final ServerLevel parent;
@@ -121,34 +86,22 @@ public class EyesSpawningManager
         return Math.abs(hour * 24 + minute);
     }
 
-    private static final Field f_spawnEnemies = ObfuscationReflectionHelper.findField(ServerChunkCache.class, "spawnEnemies");
-    private boolean isEnemySpawnEnabled()
+    @Override
+    public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies)
     {
-        try
-        {
-            return (boolean) f_spawnEnemies.get(chunkSource);
-        }
-        catch (IllegalAccessException e)
-        {
-            throw new RuntimeException("Error accessing field", e);
-        }
-    }
+        if (level != parent)
+            return 0;
 
-    private void tick()
-    {
         if (--cooldown > 0)
-            return;
+            return 0;
 
         cooldown = 150;
 
-        if (!ConfigData.enableNaturalSpawn || !parent.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING))
-            return;
-
-        if (!isEnemySpawnEnabled())
-            return;
+        if (!spawnEnemies || !ConfigData.enableNaturalSpawn || !parent.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING))
+            return 0;
 
         if (!DimensionRules.isDimensionAllowed(parent))
-            return;
+            return 0;
 
         try
         {
@@ -167,7 +120,7 @@ public class EyesSpawningManager
             int count = parent.getEntities(EyesInTheDarkness.EYES.get(), e -> ((EyesEntity) e).countsTowardSpawnCap()).size();
             if (count >= maxTotalEyesPerDimension)
             {
-                return;
+                return 0;
             }
 
             float d = ConfigData.maxEyesSpawnDistance * 1.5f;
@@ -176,6 +129,7 @@ public class EyesSpawningManager
 
             List<ServerPlayer> players = parent.players();
             int wrap = 20; //Math.min(players.size(), 20);
+            int spawned = 0;
             for (ServerPlayer player : players)
             {
                 if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
@@ -183,11 +137,12 @@ public class EyesSpawningManager
                     List<EyesEntity> entities = parent.getEntities(EyesInTheDarkness.EYES.get(), size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceToSqr(player) <= dSqr);
                     if (entities.size() < maxEyesAroundPlayer)
                     {
-                        spawnOneAround(player.position(), player, ConfigData.maxEyesSpawnDistance);
+                        spawned += spawnOneAround(player.position(), player, ConfigData.maxEyesSpawnDistance);
                     }
                 }
             }
 
+            return spawned;
         }
         finally
         {
@@ -232,7 +187,7 @@ public class EyesSpawningManager
         return Math.min(valueByDate, valueByTime);
     }
 
-    private void spawnOneAround(Vec3 positionVec, ServerPlayer player, float d)
+    private int spawnOneAround(Vec3 positionVec, ServerPlayer player, float d)
     {
         float dSqr = d*d;
 
@@ -265,12 +220,14 @@ public class EyesSpawningManager
                 {
                     parent.addFreshEntity(entity);
 
-                    return;
+                    return 1;
                 }
 
                 entity.discard();
             }
         }
+
+        return 0;
     }
 
     private static boolean isValidSpawnSpot(ServerLevel serverWorld, EntityType<?> entityType, BlockPos pos, double sqrDistanceToClosestPlayer)
