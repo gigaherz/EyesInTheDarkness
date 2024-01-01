@@ -29,7 +29,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.NetworkHooks;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.LightLayer;
@@ -45,7 +44,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnGroupData;
-import net.neoforged.neoforge.network.PlayNetworkDirection;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class EyesEntity extends Monster
 {
@@ -159,7 +158,7 @@ public class EyesEntity extends Monster
 
     public void jumpscare(ServerPlayer player)
     {
-        EyesInTheDarkness.channel.sendTo(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()), player.connection.connection, PlayNetworkDirection.PLAY_TO_CLIENT);
+        PacketDistributor.PLAYER.with(player).send(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()));
     }
 
     @Override
@@ -332,13 +331,6 @@ public class EyesEntity extends Monster
     public BlockPos getBlockPosEyes()
     {
         return BlockPos.containing(this.getX(), this.getY() + getEyeHeight(), this.getZ());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket()
-    {
-        //noinspection unchecked
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public float getSunBrightness()

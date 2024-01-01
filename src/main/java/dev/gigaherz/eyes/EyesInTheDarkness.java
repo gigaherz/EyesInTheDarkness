@@ -22,16 +22,14 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
-import net.neoforged.neoforge.network.NetworkRegistry;
-import net.neoforged.neoforge.network.PlayNetworkDirection;
-import net.neoforged.neoforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -46,8 +44,6 @@ public class EyesInTheDarkness
 
     public static final String MODID = "eyesinthedarkness";
 
-    public static final Logger LOGGER = LogManager.getLogger(MODID);
-
     private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, MODID);
     private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, MODID);
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
@@ -60,20 +56,11 @@ public class EyesInTheDarkness
             EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
             .setTrackingRange(80)
             .setUpdateInterval(3)
-            .setCustomClientFactory((ent, world) -> EyesInTheDarkness.EYES.get().create(world))
             .setShouldReceiveVelocityUpdates(true)
             .build(MODID + ":eyes"));
 
     public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
             new DeferredSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties()));
-
-    private static final String PROTOCOL_VERSION = "1.0";
-    public static final SimpleChannel channel = NetworkRegistry.ChannelBuilder
-            .named(location("main"))
-            .clientAcceptedVersions(PROTOCOL_VERSION::equals)
-            .serverAcceptedVersions(PROTOCOL_VERSION::equals)
-            .networkProtocolVersion(() -> PROTOCOL_VERSION)
-            .simpleChannel();
 
     public EyesInTheDarkness(IEventBus modEventBus)
     {
@@ -81,7 +68,7 @@ public class EyesInTheDarkness
         ENTITY_TYPES.register(modEventBus);
         ITEMS.register(modEventBus);
 
-        modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::registerPackets);
         modEventBus.addListener(this::spawnPlacement);
         modEventBus.addListener(this::entityAttributes);
         modEventBus.addListener(this::addItemsToTabs);
@@ -116,13 +103,10 @@ public class EyesInTheDarkness
         event.put(EYES.get(), EyesEntity.prepareAttributes().build());
     }
 
-    public void commonSetup(FMLCommonSetupEvent event)
+    private void registerPackets(RegisterPayloadHandlerEvent event)
     {
-        int messageNumber = 0;
-        channel.messageBuilder(InitiateJumpscarePacket.class, messageNumber++, PlayNetworkDirection.PLAY_TO_CLIENT)
-                .encoder(InitiateJumpscarePacket::encode).decoder(InitiateJumpscarePacket::new).consumerNetworkThread(InitiateJumpscarePacket::handle)
-                .add();
-        LOGGER.debug("Final message number: " + messageNumber);
+        final IPayloadRegistrar registrar = event.registrar(MODID).versioned("1.0");
+        registrar.play(InitiateJumpscarePacket.ID, InitiateJumpscarePacket::new, play -> play.client(InitiateJumpscarePacket::handle));
     }
 
     public void addGoalsToEntity(MobSpawnEvent.FinalizeSpawn event)
