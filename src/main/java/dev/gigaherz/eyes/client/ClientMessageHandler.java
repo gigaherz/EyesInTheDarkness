@@ -6,6 +6,6 @@ public class ClientMessageHandler
 {
     public static void handleInitiateJumpscare(InitiateJumpscarePacket message)
     {
-        JumpscareOverlay.INSTANCE.show(message.px, message.py, message.pz);
+        JumpscareOverlay.INSTANCE.show(message.px(), message.py(), message.pz());
     }
 }

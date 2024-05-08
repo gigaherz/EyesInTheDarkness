@@ -6,6 +6,7 @@ import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
@@ -13,17 +14,15 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.RegisterGuiOverlaysEvent;
-import net.neoforged.neoforge.client.gui.overlay.ExtendedGui;
-import net.neoforged.neoforge.client.gui.overlay.IGuiOverlay;
-import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.TickEvent;
 import org.joml.Matrix4f;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.MOD)
-public class JumpscareOverlay implements IGuiOverlay
+@EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= EventBusSubscriber.Bus.MOD)
+public class JumpscareOverlay implements LayeredDraw.Layer
 {
     private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
     private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
@@ -50,9 +49,9 @@ public class JumpscareOverlay implements IGuiOverlay
             + ANIMATION_SCARE1 + ANIMATION_FADE;
 
     @SubscribeEvent
-    public static void register(RegisterGuiOverlaysEvent event)
+    public static void register(RegisterGuiLayersEvent event)
     {
-        event.registerAbove(VanillaGuiOverlay.PORTAL.id(), EyesInTheDarkness.location("jumpscare"), INSTANCE);
+        event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, EyesInTheDarkness.location("jumpscare"), INSTANCE);
     }
 
     private final Minecraft mc;
@@ -79,7 +78,7 @@ public class JumpscareOverlay implements IGuiOverlay
         return (float)ConfigData.eyeIdleVolume;
     }
 
-    public void clientTick(TickEvent.ClientTickEvent event)
+    public void clientTick(ClientTickEvent.Pre event)
     {
         if (visible)
         {
@@ -94,7 +93,7 @@ public class JumpscareOverlay implements IGuiOverlay
 
 
     @Override
-    public void render(ExtendedGui gui, GuiGraphics graphics, float partialTicks, int width, int height)
+    public void render(GuiGraphics graphics, float partialTicks)
     {
         if (!visible) return;
 

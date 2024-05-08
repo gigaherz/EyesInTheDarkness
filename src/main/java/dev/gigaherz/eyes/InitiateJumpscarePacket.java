@@ -1,48 +1,35 @@
 package dev.gigaherz.eyes;
 
 import dev.gigaherz.eyes.client.ClientMessageHandler;
-import net.minecraft.network.FriendlyByteBuf;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class InitiateJumpscarePacket implements CustomPacketPayload
+public record InitiateJumpscarePacket(double px, double py, double pz)
+        implements CustomPacketPayload
 {
+    public static final StreamCodec<ByteBuf, InitiateJumpscarePacket> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.DOUBLE, InitiateJumpscarePacket::px,
+            ByteBufCodecs.DOUBLE, InitiateJumpscarePacket::py,
+            ByteBufCodecs.DOUBLE, InitiateJumpscarePacket::pz,
+            InitiateJumpscarePacket::new
+    );
+
     public static final ResourceLocation ID = EyesInTheDarkness.location("server_hello");
 
-    public double px;
-    public double py;
-    public double pz;
-
-    public InitiateJumpscarePacket(double px, double py, double pz)
-    {
-        this.px = px;
-        this.py = py;
-        this.pz = pz;
-    }
-
-    public InitiateJumpscarePacket(FriendlyByteBuf buf)
-    {
-        this.px = buf.readDouble();
-        this.py = buf.readDouble();
-        this.pz = buf.readDouble();
-    }
-
-    public void write(FriendlyByteBuf buf)
-    {
-        buf.writeDouble(px);
-        buf.writeDouble(py);
-        buf.writeDouble(pz);
-    }
+    public static final Type<InitiateJumpscarePacket> TYPE = new Type<>(ID);
 
     @Override
-    public ResourceLocation id()
+    public Type<? extends CustomPacketPayload> type()
     {
-        return ID;
+        return TYPE;
     }
 
-    public void handle(PlayPayloadContext context)
+    public void handle(IPayloadContext context)
     {
-        context.workHandler().execute(() -> ClientMessageHandler.handleInitiateJumpscare(this));
+        context.enqueueWork(() -> ClientMessageHandler.handleInitiateJumpscare(this));
     }
 }

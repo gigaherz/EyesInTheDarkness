@@ -70,11 +70,11 @@ public class EyesEntity extends Monster
     }
 
     @Override
-    protected void defineSynchedData()
+    protected void defineSynchedData(SynchedEntityData.Builder builder)
     {
-        super.defineSynchedData();
-        this.entityData.define(AGGRO, 0.1f);
-        this.entityData.define(IS_DORMANT, false);
+        super.defineSynchedData(builder);
+        builder.define(AGGRO, 0.1f);
+        builder.define(IS_DORMANT, false);
     }
 
     @Override
@@ -112,16 +112,16 @@ public class EyesEntity extends Monster
         return Mth.clampedLerp(getAggroLevel(), ConfigData.speedNoAggro, ConfigData.speedFullAggro);
     }
 
-    @Nullable
+    @org.jetbrains.annotations.Nullable
     @Override
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @Nullable SpawnGroupData spawnDataIn, @Nullable CompoundTag dataTag)
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @org.jetbrains.annotations.Nullable SpawnGroupData spawnGroupData)
     {
         if (ConfigData.eyeAggressionDependsOnLocalDifficulty)
         {
-            float difficulty = difficultyIn.getSpecialMultiplier();
+            float difficulty = difficultyInstance.getSpecialMultiplier();
             setAggroLevel(level().random.nextFloat() * difficulty);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
     @Override
@@ -158,7 +158,7 @@ public class EyesEntity extends Monster
 
     public void jumpscare(ServerPlayer player)
     {
-        PacketDistributor.PLAYER.with(player).send(new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()));
+        PacketDistributor.sendToPlayer(player, new InitiateJumpscarePacket(this.getX(), this.getY(), this.getZ()));
     }
 
     @Override

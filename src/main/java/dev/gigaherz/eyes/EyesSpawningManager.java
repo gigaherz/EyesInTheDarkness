@@ -21,6 +21,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -33,7 +34,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= EventBusSubscriber.Bus.GAME)
 public class EyesSpawningManager implements CustomSpawner
 {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -212,7 +213,7 @@ public class EyesSpawningManager implements CustomSpawner
             double distanceSq = player.distanceToSqr(pX, pY, pZ);
             if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesInTheDarkness.EYES.get(), pos, distanceSq))
             {
-                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, null, pos, MobSpawnType.NATURAL, false, false);
+                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, pos, MobSpawnType.NATURAL, false, false);
                 if (entity == null)
                     continue;
 
@@ -244,6 +245,6 @@ public class EyesSpawningManager implements CustomSpawner
         }
 
         return SpawnPlacements.checkSpawnRules(entityType, serverWorld, MobSpawnType.NATURAL, pos, serverWorld.random)
-                && serverWorld.noCollision(entityType.getAABB(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
+                && serverWorld.noCollision(entityType.getSpawnAABB(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
     }
 }

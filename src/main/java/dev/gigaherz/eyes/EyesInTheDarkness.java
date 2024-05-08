@@ -5,10 +5,7 @@ import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Cat;
@@ -19,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
@@ -28,8 +26,8 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
-import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -62,7 +60,7 @@ public class EyesInTheDarkness
     public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
             new DeferredSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties()));
 
-    public EyesInTheDarkness(IEventBus modEventBus)
+    public EyesInTheDarkness(ModContainer container, IEventBus modEventBus)
     {
         SOUND_EVENTS.register(modEventBus);
         ENTITY_TYPES.register(modEventBus);
@@ -73,9 +71,8 @@ public class EyesInTheDarkness
         modEventBus.addListener(this::entityAttributes);
         modEventBus.addListener(this::addItemsToTabs);
 
-        final ModLoadingContext modLoadingContext = ModLoadingContext.get();
-        modLoadingContext.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
-        modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
+        container.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC);
+        container.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC);
 
         NeoForge.EVENT_BUS.addListener(this::addGoalsToEntity);
     }
@@ -92,7 +89,7 @@ public class EyesInTheDarkness
     {
         event.register(
                 EYES.get(),
-                SpawnPlacements.Type.NO_RESTRICTIONS,
+                SpawnPlacementTypes.NO_RESTRICTIONS,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 ConfigData::canEyesSpawnAt,
                 SpawnPlacementRegisterEvent.Operation.AND);
@@ -103,10 +100,10 @@ public class EyesInTheDarkness
         event.put(EYES.get(), EyesEntity.prepareAttributes().build());
     }
 
-    private void registerPackets(RegisterPayloadHandlerEvent event)
+    private void registerPackets(RegisterPayloadHandlersEvent event)
     {
-        final IPayloadRegistrar registrar = event.registrar(MODID).versioned("1.0");
-        registrar.play(InitiateJumpscarePacket.ID, InitiateJumpscarePacket::new, play -> play.client(InitiateJumpscarePacket::handle));
+        final PayloadRegistrar registrar = event.registrar(MODID).versioned("1.0");
+        registrar.playToClient(InitiateJumpscarePacket.TYPE, InitiateJumpscarePacket.STREAM_CODEC, InitiateJumpscarePacket::handle);
     }
 
     public void addGoalsToEntity(MobSpawnEvent.FinalizeSpawn event)
