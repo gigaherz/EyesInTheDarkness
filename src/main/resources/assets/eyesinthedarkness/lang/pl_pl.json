@@ -1,0 +1,9 @@
+{
+    "sound.eyesinthedarkness.eyes.laugh":     "Coś się śmieje",
+    "sound.eyesinthedarkness.eyes.disappear": "Oczy znikają ze śmiechu",
+    "sound.eyesinthedarkness.eyes.jumpscare": "Oczy krzyczą",
+  
+    "item.eyesinthedarkness.eyes_spawn_egg": "Jajo przyzywające oczy",
+  
+    "entity.eyesinthedarkness.eyes": "Oczy"
+}
