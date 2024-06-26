@@ -81,8 +81,8 @@ public class BiomeRules
         private Rule(boolean allow, @Nullable String registryName, @Nullable String tagName)
         {
             this.allow = allow;
-            this.registryName = registryName != null ? new ResourceLocation(registryName) : null;
-            this.tagKey = tagName != null ? TagKey.create(Registries.BIOME, new ResourceLocation(tagName)) : null;
+            this.registryName = registryName != null ? ResourceLocation.parse(registryName) : null;
+            this.tagKey = tagName != null ? TagKey.create(Registries.BIOME, ResourceLocation.parse(tagName)) : null;
         }
 
         public boolean test(ServerLevel level, Holder<Biome> biome)

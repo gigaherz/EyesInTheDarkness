@@ -17,7 +17,6 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
@@ -25,20 +24,18 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
-import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @Mod(EyesInTheDarkness.MODID)
 public class EyesInTheDarkness
 {
     // Needed to keep a dedicated spawn cap for the eyes.
-    public static final MobCategory CLASSIFICATION = MobCategory.create("EITD_EYES", "eitd_eyes", 15, false, false, 64);
+    public static final MobCategory CLASSIFICATION = Enum.valueOf(MobCategory.class, "EYESINTHEDARKNESS_EYES");
 
     public static final String MODID = "eyesinthedarkness";
 
@@ -106,7 +103,7 @@ public class EyesInTheDarkness
         registrar.playToClient(InitiateJumpscarePacket.TYPE, InitiateJumpscarePacket.STREAM_CODEC, InitiateJumpscarePacket::handle);
     }
 
-    public void addGoalsToEntity(MobSpawnEvent.FinalizeSpawn event)
+    public void addGoalsToEntity(FinalizeSpawnEvent event)
     {
         Entity e = event.getEntity();
         if (e instanceof Wolf wolf)
@@ -125,6 +122,6 @@ public class EyesInTheDarkness
 
     public static ResourceLocation location(String location)
     {
-        return new ResourceLocation(MODID, location);
+        return ResourceLocation.fromNamespaceAndPath(MODID, location);
     }
 }

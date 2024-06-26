@@ -13,16 +13,17 @@ Those eyes you think you saw when walking through the forest at night. No, you d
 '''
 displayURL="https://github.com/gigaherz/EyesInTheDarkness"
 logoFile="logo.png"
+enumExtensions="META-INF/enumextensions.json"
 
 [[dependencies.eyesinthedarkness]]
    modId="neoforge"
    type="required"
-   versionRange="[20.5.0-beta,)"
+   versionRange="[21.0.38-beta,)"
    ordering="NONE"
    side="BOTH"
 [[dependencies.eyesinthedarkness]]
    modId="minecraft"
    type="required"
-   versionRange="[1.20.5,1.21)"
+   versionRange="[1.21,1.22)"
    ordering="NONE"
    side="BOTH"

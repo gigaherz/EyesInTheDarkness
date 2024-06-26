@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.config.ConfigData;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.LayeredDraw;
@@ -93,14 +94,14 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
 
     @Override
-    public void render(GuiGraphics graphics, float partialTicks)
+    public void render(GuiGraphics graphics, DeltaTracker partialTicks)
     {
         if (!visible) return;
 
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
 
-        float time = progress + mc.getFrameTime();
+        float time = progress + partialTicks.getGameTimeDeltaPartialTick(true);
         if (time >= ANIMATION_TOTAL)
         {
             visible = false;
@@ -203,15 +204,16 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
         Matrix4f matrix = poseStack.last().pose();
 
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, targetX, targetY, 0).uv(tx / texW, ty / texH).endVertex();
-        buffer.vertex(matrix, targetX, targetY + targetH, 0).uv(tx / texW, (ty + th) / texH).endVertex();
-        buffer.vertex(matrix, targetX + targetW, targetY + targetH, 0).uv((tx + tw) / texW, (ty + th) / texH).endVertex();
-        buffer.vertex(matrix, targetX + targetW, targetY, 0).uv((tx + tw) / texW, ty / texH).endVertex();
-        tessellator.end();
-
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, targetX, targetY, 0)
+                .setUv(tx / texW, ty / texH);
+        buffer.addVertex(matrix, targetX, targetY + targetH, 0)
+                .setUv(tx / texW, (ty + th) / texH);
+        buffer.addVertex(matrix, targetX + targetW, targetY + targetH, 0)
+                .setUv((tx + tw) / texW, (ty + th) / texH);
+        buffer.addVertex(matrix, targetX + targetW, targetY, 0)
+                .setUv((tx + tw) / texW, ty / texH);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
@@ -230,15 +232,20 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
         Matrix4f matrix = poseStack.last().pose();
 
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        buffer.vertex(matrix, targetX, targetY, 0).uv(tx / texW, ty / texH).color(r, g, b, a).endVertex();
-        buffer.vertex(matrix, targetX, targetY + targetH, 0).uv(tx / texW, (ty + th) / texH).color(r, g, b, a).endVertex();
-        buffer.vertex(matrix, targetX + targetW, targetY + targetH, 0).uv((tx + tw) / texW, (ty + th) / texH).color(r, g, b, a).endVertex();
-        buffer.vertex(matrix, targetX + targetW, targetY, 0).uv((tx + tw) / texW, ty / texH).color(r, g, b, a).endVertex();
-        tessellator.end();
-
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        buffer.addVertex(matrix, targetX, targetY, 0)
+                .setUv(tx / texW, ty / texH)
+                .setColor(r, g, b, a);
+        buffer.addVertex(matrix, targetX, targetY + targetH, 0)
+                .setUv(tx / texW, (ty + th) / texH)
+                .setColor(r, g, b, a);
+        buffer.addVertex(matrix, targetX + targetW, targetY + targetH, 0)
+                .setUv((tx + tw) / texW, (ty + th) / texH)
+                .setColor(r, g, b, a);
+        buffer.addVertex(matrix, targetX + targetW, targetY, 0)
+                .setUv((tx + tw) / texW, ty / texH)
+                .setColor(r, g, b, a);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
         RenderSystem.disableBlend();
     }
 }

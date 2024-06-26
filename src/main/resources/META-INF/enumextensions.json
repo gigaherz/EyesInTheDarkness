@@ -1,0 +1,10 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/world/entity/MobCategory",
+      "name": "EYESINTHEDARKNESS_EYES",
+      "constructor": "(Ljava/lang/String;IZZI)V",
+      "parameters": [ "eyesinthedarkness:eyes", 15, false, false, 64 ]
+    }
+  ]
+}

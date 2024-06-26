@@ -71,7 +71,7 @@ public class DimensionRules
         {
             this.allow = allow;
             this.isType = isType;
-            this.name = key == null ? null : new ResourceLocation(key);
+            this.name = key == null ? null : ResourceLocation.parse(key);
         }
 
         @Override

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.entity.EyesEntity;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -19,7 +20,13 @@ import org.joml.Matrix4f;
 public class EyesRenderer extends EntityRenderer<EyesEntity>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
-    private final RenderType renderType = RenderType.eyes(TEXTURE);
+    private final RenderType renderTypeBase = RenderType.entityTranslucentEmissive(TEXTURE);
+    private final RenderType renderTypeGlow = RenderType.eyes(TEXTURE);
+
+    private static final float WIDTH = .25f;
+    private static final float HEIGHT = WIDTH * 5 / 13f;
+    private static final float TEXWIDTH = 13 / 32f;
+    private static final float TEXHEIGHT = 5 / 32f;
 
     public EyesRenderer(EntityRendererProvider.Context context)
     {
@@ -50,53 +57,54 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         poseStack.translate(0, entity.getEyeHeight(), 0);
         poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
 
+        float hoff = getBlinkState(entity, partialTicks, TEXHEIGHT);
+
         float aggro = entity.getAggroLevel();
 
         float aggroColorAdjust = 1 - Mth.clamp(aggro, 0, 1);
 
-
-        final float w = .25f;
-        final float h = w * 5 / 13f;
-
-        final float tw = 13 / 32f;
-        final float th = 5 / 32f;
-        float hoff = getBlinkState(entity, partialTicks, th);
-
         int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
-        VertexConsumer buffer = bufferIn.getBuffer(renderType);
-        Matrix4f matrix = poseStack.last().pose();
-        buffer.vertex(matrix, -w, -h, 0)
-                .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .uv(0, hoff + th)
-                .overlayCoords(packedOverlayCoords)
-                .uv2(packedLightmapCoords)
-                .normal(0, 0, 1)
-                .endVertex();
-        buffer.vertex(matrix, -w, h, 0)
-                .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .uv(0, hoff)
-                .overlayCoords(packedOverlayCoords)
-                .uv2(packedLightmapCoords)
-                .normal(0, 0, 1)
-                .endVertex();
-        buffer.vertex(matrix, w, h, 0)
-                .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .uv(tw, hoff)
-                .overlayCoords(packedOverlayCoords)
-                .uv2(packedLightmapCoords)
-                .normal(0, 0, 1)
-                .endVertex();
-        buffer.vertex(matrix, w, -h, 0)
-                .color(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
-                .uv(tw, hoff + th)
-                .overlayCoords(packedOverlayCoords)
-                .uv2(packedLightmapCoords)
-                .normal(0, 0, 1)
-                .endVertex();
+
+        renderEye(poseStack, bufferIn, renderTypeBase, packedLightmapCoords,  packedOverlayCoords, 0, aggroColorAdjust, hoff);
+        poseStack.translate(0,0, -0.001f);
+        renderEye(poseStack, bufferIn, renderTypeGlow, LightTexture.FULL_SKY, packedOverlayCoords, mixAlpha, aggroColorAdjust, hoff);
 
         poseStack.popPose();
 
         super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightmapCoords);
+    }
+
+    private static void renderEye(PoseStack poseStack,
+                                  MultiBufferSource bufferIn, RenderType renderType,
+                                  int packedLightmapCoords, int packedOverlayCoords,
+                                  float mixAlpha, float aggroColorAdjust, float hoff)
+    {
+        VertexConsumer buffer = bufferIn.getBuffer(renderType);
+        Matrix4f matrix = poseStack.last().pose();
+        buffer.addVertex(matrix, -WIDTH, -HEIGHT, 0)
+                .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
+                .setUv(0, hoff + TEXHEIGHT)
+                .setOverlay(packedOverlayCoords)
+                .setLight(packedLightmapCoords)
+                .setNormal(0, 0, 1);
+        buffer.addVertex(matrix, -WIDTH, HEIGHT, 0)
+                .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
+                .setUv(0, hoff)
+                .setOverlay(packedOverlayCoords)
+                .setLight(packedLightmapCoords)
+                .setNormal(0, 0, 1);
+        buffer.addVertex(matrix, WIDTH, HEIGHT, 0)
+                .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
+                .setUv(TEXWIDTH, hoff)
+                .setOverlay(packedOverlayCoords)
+                .setLight(packedLightmapCoords)
+                .setNormal(0, 0, 1);
+        buffer.addVertex(matrix, WIDTH, -HEIGHT, 0)
+                .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
+                .setUv(TEXWIDTH, hoff + TEXHEIGHT)
+                .setOverlay(packedOverlayCoords)
+                .setLight(packedLightmapCoords)
+                .setNormal(0, 0, 1);
     }
 
     private float getBlinkState(EyesEntity entity, float partialTicks, float th)

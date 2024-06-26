@@ -3,10 +3,10 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.109'
+    id 'net.neoforged.gradle.userdev' version '7.0.145'
 }
 
-version = "1.4.2"
+version = "1.4.4"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 Provider<String> minecraftVersion(Transformer<String, String> mapper) {
@@ -45,13 +45,13 @@ minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/
 
 subsystems {
     parchment {
-        minecraftVersion="1.20.4"
-        mappingsVersion="2024.04.14"
+        minecraftVersion="1.20.6"
+        mappingsVersion="2024.05.01"
     }
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:20.5.20-beta'
+    implementation 'net.neoforged:neoforge:21.0.38-beta'
 }
 
 jar {
