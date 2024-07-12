@@ -23,7 +23,7 @@ import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
-import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
+import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -82,14 +82,14 @@ public class EyesInTheDarkness
         }
     }
 
-    public void spawnPlacement(SpawnPlacementRegisterEvent event)
+    public void spawnPlacement(RegisterSpawnPlacementsEvent event)
     {
         event.register(
                 EYES.get(),
                 SpawnPlacementTypes.NO_RESTRICTIONS,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 ConfigData::canEyesSpawnAt,
-                SpawnPlacementRegisterEvent.Operation.AND);
+                RegisterSpawnPlacementsEvent.Operation.AND);
     }
 
     public void entityAttributes(EntityAttributeCreationEvent event)

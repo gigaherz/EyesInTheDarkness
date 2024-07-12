@@ -383,12 +383,6 @@ public class EyesEntity extends Monster
         return requiresCustomPersistence() || isPersistenceRequired();
     }
 
-    @Override
-    public void onRemovedFromWorld()
-    {
-        super.onRemovedFromWorld();
-    }
-
     private static class CreepTowardPlayer extends Goal
     {
         protected final PathfinderMob attacker;

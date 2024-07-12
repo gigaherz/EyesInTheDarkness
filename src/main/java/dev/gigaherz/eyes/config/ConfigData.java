@@ -243,7 +243,18 @@ public class ConfigData
     private static class ModEventHandler
     {
         @SubscribeEvent
-        public static void configLoading(final ModConfigEvent event)
+        public static void configLoading(final ModConfigEvent.Loading event)
+        {
+            refreshConfig(event);
+        }
+
+        @SubscribeEvent
+        public static void configReloading(final ModConfigEvent.Reloading event)
+        {
+            refreshConfig(event);
+        }
+
+        private static void refreshConfig(ModConfigEvent event)
         {
             ModConfig config = event.getConfig();
 
