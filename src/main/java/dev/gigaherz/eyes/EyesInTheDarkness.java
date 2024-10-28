@@ -3,6 +3,7 @@ package dev.gigaherz.eyes;
 import dev.gigaherz.eyes.config.ConfigData;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.*;
@@ -47,15 +48,15 @@ public class EyesInTheDarkness
     public static final DeferredHolder<SoundEvent, SoundEvent> EYES_DISAPPEAR = SOUND_EVENTS.register("eyes_disappear", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.disappear")));
     public static final DeferredHolder<SoundEvent, SoundEvent> EYES_JUMPSCARE = SOUND_EVENTS.register("eyes_jumpscare", () -> SoundEvent.createVariableRangeEvent(location("mob.eyes.jumpscare")));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EyesEntity>> EYES = ENTITY_TYPES.register("eyes", () ->
+    public static final DeferredHolder<EntityType<?>, EntityType<EyesEntity>> EYES = ENTITY_TYPES.register("eyes", name ->
             EntityType.Builder.of(EyesEntity::new, CLASSIFICATION)
             .setTrackingRange(80)
             .setUpdateInterval(3)
             .setShouldReceiveVelocityUpdates(true)
-            .build(MODID + ":eyes"));
+            .build(ResourceKey.create(ENTITY_TYPES.getRegistryKey(), name)));
 
-    public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.register("eyes_spawn_egg", () ->
-            new DeferredSpawnEggItem(EYES, 0x000000, 0x7F0000, new Item.Properties()));
+    public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.registerItem("eyes_spawn_egg", props ->
+            new DeferredSpawnEggItem(EYES, 0x000000, 0x7F0000, props));
 
     public EyesInTheDarkness(ModContainer container, IEventBus modEventBus)
     {

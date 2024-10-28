@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +18,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.LightLayer;
 import org.joml.Matrix4f;
 
-public class EyesRenderer extends EntityRenderer<EyesEntity>
+public class EyesRenderer extends EntityRenderer<EyesEntity, EyesRenderer.EyesRenderState>
 {
     private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
     private final RenderType renderTypeBase = RenderType.entityTranslucentEmissive(TEXTURE);
@@ -33,20 +34,46 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
         super(context);
     }
 
-    @Override
-    public void render(EyesEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightmapCoords)
+    public static class EyesRenderState extends EntityRenderState
     {
-        BlockPos position = entity.getBlockPosEyes();
+        public float blockLight;
+        public float hoff;
+        public float aggro;
+    }
 
-        float blockLight = entity.level().getBrightness(LightLayer.BLOCK, position);
+    @Override
+    public EyesRenderState createRenderState()
+    {
+        return new EyesRenderState();
+    }
+
+    @Override
+    public void extractRenderState(EyesEntity entity, EyesRenderState state, float partialTick)
+    {
+        super.extractRenderState(entity, state, partialTick);
+
+        var position = entity.getBlockPosEyes();
+        state.blockLight = entity.level().getBrightness(LightLayer.BLOCK, position);
 
         if (entity.level().dimensionType().hasSkyLight())
         {
             float skyLight = entity.level().getBrightness(LightLayer.SKY, position)
-                    - (1 - ((ClientLevel) entity.level()).getSkyDarken(partialTicks)) * 11;
+                    - (1 - ((ClientLevel) entity.level()).getSkyDarken(partialTick)) * 11;
 
-            blockLight = Math.max(blockLight, skyLight);
+            state.blockLight = Math.max(state.blockLight, skyLight);
         }
+
+        state.hoff = getBlinkState(entity, partialTick, TEXHEIGHT);
+
+        state.aggro = entity.getAggroLevel();
+    }
+
+    @Override
+    public void render(EyesRenderState state, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightmapCoords)
+    {
+        float blockLight = state.blockLight;
+        float hoff = state.hoff;
+        float aggro = state.aggro;
 
         float mixAlpha = Mth.clamp((8 - blockLight) / 8.0f, 0, 1);
 
@@ -54,12 +81,8 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
             return;
 
         poseStack.pushPose();
-        poseStack.translate(0, entity.getEyeHeight(), 0);
+        poseStack.translate(0, state.eyeHeight, 0);
         poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
-
-        float hoff = getBlinkState(entity, partialTicks, TEXHEIGHT);
-
-        float aggro = entity.getAggroLevel();
 
         float aggroColorAdjust = 1 - Mth.clamp(aggro, 0, 1);
 
@@ -71,7 +94,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
 
         poseStack.popPose();
 
-        super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightmapCoords);
+        super.render(state, poseStack, bufferIn, packedLightmapCoords);
     }
 
     private static void renderEye(PoseStack poseStack,
@@ -123,11 +146,5 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
             }
         }
         return hoff;
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(EyesEntity entity)
-    {
-        return TEXTURE;
     }
 }

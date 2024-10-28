@@ -81,7 +81,7 @@ public class DimensionRules
                 return true;
             if (isType)
             {
-                return name.equals(world.registryAccess().registryOrThrow(Registries.DIMENSION_TYPE).getKey(world.dimensionType()));
+                return name.equals(world.registryAccess().lookupOrThrow(Registries.DIMENSION_TYPE).getKey(world.dimensionType()));
             }
             else
             {

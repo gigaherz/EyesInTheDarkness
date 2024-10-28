@@ -11,8 +11,8 @@ import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.GameRules;
@@ -213,11 +213,11 @@ public class EyesSpawningManager implements CustomSpawner
             double distanceSq = player.distanceToSqr(pX, pY, pZ);
             if (distanceSq < dSqr && isValidSpawnSpot(parent, EyesInTheDarkness.EYES.get(), pos, distanceSq))
             {
-                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, pos, MobSpawnType.NATURAL, false, false);
+                EyesEntity entity = EyesInTheDarkness.EYES.get().create(parent, null, pos, EntitySpawnReason.NATURAL, false, false);
                 if (entity == null)
                     continue;
 
-                if (entity.checkSpawnRules(parent, MobSpawnType.NATURAL) && entity.checkSpawnObstruction(parent))
+                if (entity.checkSpawnRules(parent, EntitySpawnReason.NATURAL) && entity.checkSpawnObstruction(parent))
                 {
                     parent.addFreshEntity(entity);
 
@@ -244,7 +244,7 @@ public class EyesSpawningManager implements CustomSpawner
             return false;
         }
 
-        return SpawnPlacements.checkSpawnRules(entityType, serverWorld, MobSpawnType.NATURAL, pos, serverWorld.random)
+        return SpawnPlacements.checkSpawnRules(entityType, serverWorld, EntitySpawnReason.NATURAL, pos, serverWorld.random)
                 && serverWorld.noCollision(entityType.getSpawnAABB(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
     }
 }

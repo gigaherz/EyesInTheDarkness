@@ -5,13 +5,12 @@ import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -312,7 +311,7 @@ public class ConfigData
         return defaultSupplier.get();
     }
 
-    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, ServerLevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource random)
+    public static boolean canEyesSpawnAt(EntityType<EyesEntity> entityType, ServerLevelAccessor world, EntitySpawnReason reason, BlockPos pos, RandomSource random)
     {
         return Monster.checkMonsterSpawnRules(entityType, world, reason, pos, random);
     }

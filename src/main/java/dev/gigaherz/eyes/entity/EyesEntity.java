@@ -4,6 +4,8 @@ import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.InitiateJumpscarePacket;
 import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -22,7 +24,6 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.AABB;
@@ -38,12 +39,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.SpawnGroupData;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class EyesEntity extends Monster
@@ -114,7 +109,8 @@ public class EyesEntity extends Monster
 
     @org.jetbrains.annotations.Nullable
     @Override
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @org.jetbrains.annotations.Nullable SpawnGroupData spawnGroupData)
+    @Deprecated
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyInstance, EntitySpawnReason mobSpawnType, @org.jetbrains.annotations.Nullable SpawnGroupData spawnGroupData)
     {
         if (ConfigData.eyeAggressionDependsOnLocalDifficulty)
         {
@@ -137,7 +133,7 @@ public class EyesEntity extends Monster
     }
 
     @Override
-    public boolean doHurtTarget(Entity entityIn)
+    public boolean doHurtTarget(ServerLevel level, Entity entityIn)
     {
         boolean jumpScared = ConfigData.jumpscare && entityIn instanceof ServerPlayer;
         if (jumpScared)
@@ -538,7 +534,7 @@ public class EyesEntity extends Monster
             {
                 this.attackTick = 20;
                 this.attacker.swing(InteractionHand.MAIN_HAND);
-                this.attacker.doHurtTarget(enemy);
+                this.attacker.doHurtTarget(getServerLevel(enemy), enemy);
             }
         }
 

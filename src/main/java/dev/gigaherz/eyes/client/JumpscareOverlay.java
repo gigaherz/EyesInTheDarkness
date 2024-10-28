@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -111,7 +112,8 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
         var poseStack = graphics.pose();
 
-        RenderSystem.clear(256, false);
+        //FIXME: RenderSystem.clear(256);
+
         poseStack.pushPose();
         //poseStack.translatef(0.0F, 0.0F, -2000.0F);
 
@@ -196,15 +198,10 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
     private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
     {
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, tex);
+        var source = Minecraft.getInstance().renderBuffers().bufferSource();
+        var buffer = source.getBuffer(RenderType.guiTextured(tex));
 
         Matrix4f matrix = poseStack.last().pose();
-
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         buffer.addVertex(matrix, targetX, targetY, 0)
                 .setUv(tx / texW, ty / texH);
         buffer.addVertex(matrix, targetX, targetY + targetH, 0)
@@ -213,8 +210,6 @@ public class JumpscareOverlay implements LayeredDraw.Layer
                 .setUv((tx + tw) / texW, (ty + th) / texH);
         buffer.addVertex(matrix, targetX + targetW, targetY, 0)
                 .setUv((tx + tw) / texW, ty / texH);
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
-        RenderSystem.disableBlend();
     }
 
     private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
@@ -224,15 +219,11 @@ public class JumpscareOverlay implements LayeredDraw.Layer
         int g = (color >> 8) & 255;
         int b = (color >> 0) & 255;
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, tex);
+        var source = Minecraft.getInstance().renderBuffers().bufferSource();
+        var buffer = source.getBuffer(RenderType.guiTextured(tex));
 
         Matrix4f matrix = poseStack.last().pose();
 
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         buffer.addVertex(matrix, targetX, targetY, 0)
                 .setUv(tx / texW, ty / texH)
                 .setColor(r, g, b, a);
@@ -245,7 +236,5 @@ public class JumpscareOverlay implements LayeredDraw.Layer
         buffer.addVertex(matrix, targetX + targetW, targetY, 0)
                 .setUv((tx + tw) / texW, ty / texH)
                 .setColor(r, g, b, a);
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
-        RenderSystem.disableBlend();
     }
 }

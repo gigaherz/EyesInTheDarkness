@@ -91,7 +91,7 @@ public class BiomeRules
             {
                 ResourceLocation name = biome.unwrap().map(
                         ResourceKey::location,
-                        b -> level.registryAccess().registryOrThrow(Registries.BIOME).getKey(b));
+                        b -> level.registryAccess().lookupOrThrow(Registries.BIOME).getKey(b));
                 return registryName.equals(name);
             }
             else if(tagKey != null)
