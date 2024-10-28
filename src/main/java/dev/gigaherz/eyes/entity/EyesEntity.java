@@ -266,7 +266,7 @@ public class EyesEntity extends Monster
 
     private void disappear(boolean playDeathSound)
     {
-        actuallyHurt(damageSources().generic(), 1);
+        hurt(damageSources().generic(), 1);
         if (playDeathSound)
         {
             this.playSound(getDeathSound(), this.getDisappearVolume(), this.getVoicePitch());

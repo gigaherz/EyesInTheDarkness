@@ -65,7 +65,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity>
 
         int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
 
-        renderEye(poseStack, bufferIn, renderTypeBase, packedLightmapCoords,  packedOverlayCoords, 0, aggroColorAdjust, hoff);
+        renderEye(poseStack, bufferIn, renderTypeBase, packedLightmapCoords,  packedOverlayCoords, mixAlpha, aggroColorAdjust, hoff);
         poseStack.translate(0,0, -0.001f);
         renderEye(poseStack, bufferIn, renderTypeGlow, LightTexture.FULL_SKY, packedOverlayCoords, mixAlpha, aggroColorAdjust, hoff);
 
