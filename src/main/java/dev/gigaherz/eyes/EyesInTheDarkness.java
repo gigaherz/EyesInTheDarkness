@@ -20,7 +20,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
@@ -56,7 +55,7 @@ public class EyesInTheDarkness
             .build(ResourceKey.create(ENTITY_TYPES.getRegistryKey(), name)));
 
     public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.registerItem("eyes_spawn_egg", props ->
-            new DeferredSpawnEggItem(EYES, 0x000000, 0x7F0000, props));
+            new SpawnEggItem(EYES.get(), 0x000000, 0x7F0000, props));
 
     public EyesInTheDarkness(ModContainer container, IEventBus modEventBus)
     {
