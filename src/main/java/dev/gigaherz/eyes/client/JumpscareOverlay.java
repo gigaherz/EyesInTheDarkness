@@ -203,13 +203,17 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
         Matrix4f matrix = poseStack.last().pose();
         buffer.addVertex(matrix, targetX, targetY, 0)
-                .setUv(tx / texW, ty / texH);
+                .setUv(tx / texW, ty / texH)
+                .setColor(-1);
         buffer.addVertex(matrix, targetX, targetY + targetH, 0)
-                .setUv(tx / texW, (ty + th) / texH);
+                .setUv(tx / texW, (ty + th) / texH)
+                .setColor(-1);
         buffer.addVertex(matrix, targetX + targetW, targetY + targetH, 0)
-                .setUv((tx + tw) / texW, (ty + th) / texH);
+                .setUv((tx + tw) / texW, (ty + th) / texH)
+                .setColor(-1);
         buffer.addVertex(matrix, targetX + targetW, targetY, 0)
-                .setUv((tx + tw) / texW, ty / texH);
+                .setUv((tx + tw) / texW, ty / texH)
+                .setColor(-1);
     }
 
     private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)

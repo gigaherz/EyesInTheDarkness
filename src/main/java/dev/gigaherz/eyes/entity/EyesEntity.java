@@ -465,10 +465,10 @@ public class EyesEntity extends Monster
             Vec3 playerPos = target.position();
             Vec3 lookVec = target.getLookAngle();
             Vec3 playerLook = new Vec3(lookVec.x, lookVec.y, lookVec.z);
-            playerLook.normalize();
+            //playerLook = playerLook.normalize();
 
-            playerPos.subtract(selfPos);
-            playerPos.normalize();
+            playerPos = playerPos.subtract(selfPos);
+            //playerPos = playerPos.normalize();
 
             return playerLook.dot(playerPos) < 0;
         }

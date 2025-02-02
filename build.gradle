@@ -3,10 +3,10 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.42-beta'
+    id 'net.neoforged.moddev' version '2.0.63-beta'
 }
 
-version = "1.5.1"
+version = "1.6.0"
 group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
@@ -17,7 +17,7 @@ base {
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = "21.3.19-beta"
+    version = "21.4.78-beta"
 
     runs {
         // applies to all the run configs below
@@ -44,8 +44,8 @@ neoForge {
     }
 
     parchment {
-        minecraftVersion = "1.21"
-        mappingsVersion = "2024.07.07"
+        minecraftVersion = "1.21.4"
+        mappingsVersion = "2024.12.29"
     }
 }
 
@@ -53,9 +53,7 @@ dependencies {
 }
 
 jar {
-    from('/') {
-        include 'LICENSE.txt'
-    }
+    from(files('LICENSE.txt'))
 
     manifest {
         attributes([
