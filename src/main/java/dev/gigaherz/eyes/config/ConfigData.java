@@ -138,7 +138,7 @@ public class ConfigData
                                 "  To disable spawning in the end: [ \"!#minecraft:is_end\" ]",
                                 "  To disable spawning in the nether biome: [ \"!minecraft:nether\" ]",
                                 "  To disable spawning in forest areas, but allow them in dark fores: [ \"minecraft:dark_forest\", \"!#minecraft:is_forest\" ]"
-                        ).defineList("BiomeRules", Lists.newArrayList(), o -> o instanceof String);
+                        ).defineList("BiomeRules", Lists.newArrayList(), () -> "", o -> o instanceof String);
                 dimensionRules = builder
                         .comment(
                                 "Specifies rules for accepting or rejecting dimensions.",
@@ -153,7 +153,7 @@ public class ConfigData
                                 "  To disable spawning in the end dimension: [ \"!minecraft:the_end\" ]",
                                 "  To disable spawning in the nether dimension: [ \"!minecraft:nether\" ]",
                                 "  To disable spawning in all secondary overworlds, but allow the vanilla overworld: [ \"minecraft:overworld\", \"!#minecraft:overworld\" ]"
-                        ).defineList("DimensionRules", Lists.newArrayList(), o -> o instanceof String);
+                        ).defineList("DimensionRules", Lists.newArrayList(), () -> "", o -> o instanceof String);
             }
             builder.pop();
             builder.comment("Default spawn settings")

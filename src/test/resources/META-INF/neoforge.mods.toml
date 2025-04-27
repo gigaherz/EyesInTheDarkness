@@ -1,0 +1,6 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="public domain"
+[[mods]]
+modId="disable_ide_checks"
+version="1.0"

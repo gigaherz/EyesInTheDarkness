@@ -3,22 +3,17 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.63-beta'
+    id 'net.neoforged.moddev' version '2.0.82'
 }
 
-version = "1.6.0"
-group = "dev.gigaherz.eyes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-
-var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
-base {
-    archivesName = minecraftVersionResolver.map { "EyesInTheDarkness-${it}" }
-}
+neoForge.version = "21.5.62-beta"
+version = "1.7.0"
+group = "dev.gigaherz.eyes"
+base.archivesName = "EyesInTheDarkness-${neoForge.minecraftVersion}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = "21.4.78-beta"
-
     runs {
         // applies to all the run configs below
         configureEach {
@@ -37,19 +32,23 @@ neoForge {
         }
     }
 
-    mods {
-        thismod {
-            sourceSet(sourceSets.main)
-        }
-    }
-
     parchment {
         minecraftVersion = "1.21.4"
         mappingsVersion = "2024.12.29"
     }
+
+    mods {
+        thismod {
+            sourceSet(sourceSets.main)
+        }
+        debugstuff {
+            sourceSet(sourceSets.test)
+        }
+    }
 }
 
-dependencies {
+sourceSets.test {
+    compileClasspath += sourceSets.main.compileClasspath
 }
 
 jar {

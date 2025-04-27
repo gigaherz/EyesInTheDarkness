@@ -56,13 +56,11 @@ public class JumpscareOverlay implements LayeredDraw.Layer
         event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, EyesInTheDarkness.location("jumpscare"), INSTANCE);
     }
 
-    private final Minecraft mc;
     private boolean visible = false;
     private float progress = 0;
 
     private JumpscareOverlay()
     {
-        mc = Minecraft.getInstance();
         NeoForge.EVENT_BUS.addListener(this::clientTick);
     }
 
@@ -71,7 +69,7 @@ public class JumpscareOverlay implements LayeredDraw.Layer
         if (ConfigData.jumpscareClient)
         {
             visible = true;
-            mc.level.playLocalSound(ex, ey, ez, EyesInTheDarkness.EYES_JUMPSCARE.get(), SoundSource.HOSTILE, getJumpscareVolume(), 1, false);
+            Minecraft.getInstance().level.playLocalSound(ex, ey, ez, EyesInTheDarkness.EYES_JUMPSCARE.get(), SoundSource.HOSTILE, getJumpscareVolume(), 1, false);
         }
     }
 
@@ -99,6 +97,7 @@ public class JumpscareOverlay implements LayeredDraw.Layer
     {
         if (!visible) return;
 
+        var mc = Minecraft.getInstance();
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
 
@@ -144,22 +143,22 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
         int alpha = Mth.floor(darkening * 255);
 
-        if (showCreep)
-        {
-            int texW = 2048;
-            int texH = 1024;
-
-            float scale1 = screenHeight / (float) texH;
-            int drawY = 0;
-            int drawH = screenHeight;
-            int drawW = Mth.floor(texW * scale1);
-            int drawX = (screenWidth - drawW) / 2;
-
-            drawScaledCustomTexture(TEXTURE_FLASH, poseStack, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
-        }
-        else
+        if (alpha > 0)
         {
             graphics.fill(0, 0, screenWidth, screenHeight, alpha << 24);
+            if (showCreep)
+            {
+                int texW = 2048;
+                int texH = 1024;
+
+                float scale1 = screenHeight / (float) texH;
+                int drawY = 0;
+                int drawH = screenHeight;
+                int drawW = Mth.floor(texW * scale1);
+                int drawX = (screenWidth - drawW) / 2;
+
+                drawScaledCustomTexture(TEXTURE_FLASH, poseStack, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
+            }
         }
 
         if (blinkstate != 1)

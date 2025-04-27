@@ -88,21 +88,21 @@ public class EyesSpawningManager implements CustomSpawner
     }
 
     @Override
-    public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies)
+    public void tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies)
     {
         if (level != parent)
-            return 0;
+            return;
 
         if (--cooldown > 0)
-            return 0;
+            return;
 
         cooldown = 150;
 
         if (!spawnEnemies || !ConfigData.enableNaturalSpawn || !parent.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING))
-            return 0;
+            return;
 
         if (!DimensionRules.isDimensionAllowed(parent))
-            return 0;
+            return;
 
         try
         {
@@ -121,7 +121,7 @@ public class EyesSpawningManager implements CustomSpawner
             int count = parent.getEntities(EyesInTheDarkness.EYES.get(), e -> ((EyesEntity) e).countsTowardSpawnCap()).size();
             if (count >= maxTotalEyesPerDimension)
             {
-                return 0;
+                return;
             }
 
             float d = ConfigData.maxEyesSpawnDistance * 1.5f;
@@ -130,7 +130,6 @@ public class EyesSpawningManager implements CustomSpawner
 
             List<ServerPlayer> players = parent.players();
             int wrap = 20; //Math.min(players.size(), 20);
-            int spawned = 0;
             for (ServerPlayer player : players)
             {
                 if (((player.getId() + ticks) % wrap) == 0 && !player.isSpectator())
@@ -138,12 +137,10 @@ public class EyesSpawningManager implements CustomSpawner
                     List<EyesEntity> entities = parent.getEntities(EyesInTheDarkness.EYES.get(), size.move(player.position()), e -> !e.countsTowardSpawnCap() && e.distanceToSqr(player) <= dSqr);
                     if (entities.size() < maxEyesAroundPlayer)
                     {
-                        spawned += spawnOneAround(player.position(), player, ConfigData.maxEyesSpawnDistance);
+                        spawnOneAround(player.position(), player, ConfigData.maxEyesSpawnDistance);
                     }
                 }
             }
-
-            return spawned;
         }
         finally
         {
@@ -188,7 +185,7 @@ public class EyesSpawningManager implements CustomSpawner
         return Math.min(valueByDate, valueByTime);
     }
 
-    private int spawnOneAround(Vec3 positionVec, ServerPlayer player, float d)
+    private void spawnOneAround(Vec3 positionVec, ServerPlayer player, float d)
     {
         float dSqr = d*d;
 
@@ -221,14 +218,12 @@ public class EyesSpawningManager implements CustomSpawner
                 {
                     parent.addFreshEntity(entity);
 
-                    return 1;
+                    return;
                 }
 
                 entity.discard();
             }
         }
-
-        return 0;
     }
 
     private static boolean isValidSpawnSpot(ServerLevel serverWorld, EntityType<?> entityType, BlockPos pos, double sqrDistanceToClosestPlayer)
