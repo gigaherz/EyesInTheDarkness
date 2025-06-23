@@ -1,16 +1,18 @@
 package dev.gigaherz.eyes.client;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -19,12 +21,15 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.GuiLayer;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
-import org.joml.Matrix4f;
+import org.joml.Matrix3x2f;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= EventBusSubscriber.Bus.MOD)
-public class JumpscareOverlay implements LayeredDraw.Layer
+import javax.annotation.Nullable;
+
+@EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID)
+public class JumpscareOverlay implements GuiLayer
 {
     private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
     private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
@@ -113,7 +118,7 @@ public class JumpscareOverlay implements LayeredDraw.Layer
 
         //FIXME: RenderSystem.clear(256);
 
-        poseStack.pushPose();
+        poseStack.pushMatrix();
         //poseStack.translatef(0.0F, 0.0F, -2000.0F);
 
         float darkening = Mth.clamp(
@@ -152,12 +157,12 @@ public class JumpscareOverlay implements LayeredDraw.Layer
                 int texH = 1024;
 
                 float scale1 = screenHeight / (float) texH;
-                int drawY = 0;
-                int drawH = screenHeight;
-                int drawW = Mth.floor(texW * scale1);
-                int drawX = (screenWidth - drawW) / 2;
+                float drawY = 0;
+                float drawH = screenHeight;
+                float drawW = Mth.floor(texW * scale1);
+                float drawX = (screenWidth - drawW) / 2;
 
-                drawScaledCustomTexture(TEXTURE_FLASH, poseStack, texW, texH, 0, 0, texW, texH, drawX, drawY, drawW, drawH, (alpha << 24) | 0xFFFFFF);
+                customBlit(graphics, RenderPipelines.GUI_TEXTURED, TEXTURE_FLASH, drawX, drawY, drawW, drawH, 0, 0, texW, texH, texW, texH, (alpha << 24) | 0xFFFFFF);
             }
         }
 
@@ -187,57 +192,111 @@ public class JumpscareOverlay implements LayeredDraw.Layer
             float drawX = ((screenWidth - drawW) / 2.0f);
             float drawY = ((screenHeight - drawH) / 2.0f);
 
-            float texW = 32;
-            float texH = 32;
-            drawScaledCustomTexture(TEXTURE_EYES, poseStack, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
+            int texW = 32;
+            int texH = 32;
+
+            customBlit(graphics, RenderPipelines.GUI_TEXTURED, TEXTURE_EYES, drawX, drawY, drawW, drawH, tx, ty, tw, th, texW, texH, 0xFFFFFFFF);
         }
 
-        poseStack.popPose();
+        poseStack.popMatrix();
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH)
+    public void customBlit(
+            GuiGraphics graphics,
+            RenderPipeline pipeline,
+            ResourceLocation texture,
+            float x0, float y0,
+            float xw, float yh,
+            float u0, float v0,
+            float uw, float vw,
+            float tw, float th,
+            int color
+    ) {
+        GpuTextureView gputextureview = Minecraft.getInstance().getTextureManager().getTexture(texture).getTextureView();
+        graphics.submitGuiElementRenderState(
+                        new BlitRenderStateF(
+                                pipeline,
+                                TextureSetup.singleTexture(gputextureview),
+                                new Matrix3x2f(graphics.pose()),
+                                x0,
+                                y0,
+                                x0 + xw,
+                                y0 + yh,
+                                (u0 + 0.0F) / tw,
+                                (u0 + uw) / tw,
+                                (v0 + 0.0F) / th,
+                                (v0 + vw) / th,
+                                color,
+                                graphics.peekScissorStack()
+                        )
+                );
+    }
+
+    public record BlitRenderStateF(
+            RenderPipeline pipeline,
+            TextureSetup textureSetup,
+            Matrix3x2f pose,
+            float x0,
+            float y0,
+            float x1,
+            float y1,
+            float u0,
+            float u1,
+            float v0,
+            float v1,
+            int color,
+            @Nullable ScreenRectangle scissorArea,
+            @Nullable ScreenRectangle bounds
+    ) implements GuiElementRenderState
     {
-        var source = Minecraft.getInstance().renderBuffers().bufferSource();
-        var buffer = source.getBuffer(RenderType.guiTextured(tex));
+        public BlitRenderStateF(
+                RenderPipeline pipeline,
+                TextureSetup textureSetup,
+                Matrix3x2f pose,
+                float x0,
+                float y0,
+                float x1,
+                float y1,
+                float u0,
+                float v0,
+                float u1,
+                float v1,
+                int color,
+                @Nullable ScreenRectangle bounds
+        ) {
+            this(
+                    pipeline,
+                    textureSetup,
+                    pose,
+                    x0,
+                    y0,
+                    x1,
+                    y1,
+                    u0,
+                    v0,
+                    u1,
+                    v1,
+                    color,
+                    bounds,
+                    getBounds(x0, y0, x1, y1, pose, bounds)
+            );
+        }
 
-        Matrix4f matrix = poseStack.last().pose();
-        buffer.addVertex(matrix, targetX, targetY, 0)
-                .setUv(tx / texW, ty / texH)
-                .setColor(-1);
-        buffer.addVertex(matrix, targetX, targetY + targetH, 0)
-                .setUv(tx / texW, (ty + th) / texH)
-                .setColor(-1);
-        buffer.addVertex(matrix, targetX + targetW, targetY + targetH, 0)
-                .setUv((tx + tw) / texW, (ty + th) / texH)
-                .setColor(-1);
-        buffer.addVertex(matrix, targetX + targetW, targetY, 0)
-                .setUv((tx + tw) / texW, ty / texH)
-                .setColor(-1);
+        @Override
+        public void buildVertices(VertexConsumer consumer, float z) {
+            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y0(), z).setUv(this.u0(), this.v0()).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y1(), z).setUv(this.u0(), this.v1()).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y1(), z).setUv(this.u1(), this.v1()).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y0(), z).setUv(this.u1(), this.v0()).setColor(this.color());
+        }
+
+        @Nullable
+        private static ScreenRectangle getBounds(
+                float x0, float y0, float x1, float y1, Matrix3x2f pose, @Nullable ScreenRectangle rect
+        ) {
+            ScreenRectangle screenrectangle = new ScreenRectangle(Mth.floor(x0), Mth.floor(y0), Mth.ceil(x1 - x0), Mth.ceil(y1 - y0)).transformMaxBounds(pose);
+            return rect != null ? rect.intersection(screenrectangle) : screenrectangle;
+        }
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, PoseStack poseStack, float texW, float texH, int tx, int ty, int tw, int th, float targetX, float targetY, float targetW, float targetH, int color)
-    {
-        int a = (color >> 24) & 255;
-        int r = (color >> 16) & 255;
-        int g = (color >> 8) & 255;
-        int b = (color >> 0) & 255;
-
-        var source = Minecraft.getInstance().renderBuffers().bufferSource();
-        var buffer = source.getBuffer(RenderType.guiTextured(tex));
-
-        Matrix4f matrix = poseStack.last().pose();
-
-        buffer.addVertex(matrix, targetX, targetY, 0)
-                .setUv(tx / texW, ty / texH)
-                .setColor(r, g, b, a);
-        buffer.addVertex(matrix, targetX, targetY + targetH, 0)
-                .setUv(tx / texW, (ty + th) / texH)
-                .setColor(r, g, b, a);
-        buffer.addVertex(matrix, targetX + targetW, targetY + targetH, 0)
-                .setUv((tx + tw) / texW, (ty + th) / texH)
-                .setColor(r, g, b, a);
-        buffer.addVertex(matrix, targetX + targetW, targetY, 0)
-                .setUv((tx + tw) / texW, ty / texH)
-                .setColor(r, g, b, a);
-    }
 }

@@ -26,6 +26,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -121,13 +123,13 @@ public class EyesEntity extends Monster
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound)
+    public void readAdditionalSaveData(ValueInput compound)
     {
         super.readAdditionalSaveData(compound);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound)
+    public void addAdditionalSaveData(ValueOutput compound)
     {
         super.addAdditionalSaveData(compound);
     }

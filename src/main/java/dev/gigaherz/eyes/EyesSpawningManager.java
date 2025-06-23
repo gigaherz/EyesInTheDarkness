@@ -34,7 +34,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID, bus= EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID)
 public class EyesSpawningManager implements CustomSpawner
 {
     private static final Logger LOGGER = LogManager.getLogger();

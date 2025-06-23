@@ -238,7 +238,7 @@ public class ConfigData
     // Client
     public static boolean jumpscareClient;
 
-    @EventBusSubscriber(modid = EyesInTheDarkness.MODID, bus = EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(modid = EyesInTheDarkness.MODID)
     private static class ModEventHandler
     {
         @SubscribeEvent
