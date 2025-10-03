@@ -5,15 +5,15 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.LightLayer;
 import org.joml.Matrix4f;
@@ -69,7 +69,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity, EyesRenderer.EyesRe
     }
 
     @Override
-    public void render(EyesRenderState state, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightmapCoords)
+    public void submit(EyesRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraRenderState)
     {
         float blockLight = state.blockLight;
         float hoff = state.hoff;
@@ -82,50 +82,48 @@ public class EyesRenderer extends EntityRenderer<EyesEntity, EyesRenderer.EyesRe
 
         poseStack.pushPose();
         poseStack.translate(0, state.eyeHeight, 0);
-        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+        poseStack.mulPose(cameraRenderState.orientation);
 
         float aggroColorAdjust = 1 - Mth.clamp(aggro, 0, 1);
 
-        int packedOverlayCoords = OverlayTexture.NO_OVERLAY;
-
-        renderEye(poseStack, bufferIn, renderTypeBase, packedLightmapCoords,  packedOverlayCoords, mixAlpha, aggroColorAdjust, hoff);
+        collector.order(1).submitCustomGeometry(poseStack, renderTypeBase, (pose, vertexConsumer) ->
+                renderEye(pose, vertexConsumer, state.lightCoords, mixAlpha, aggroColorAdjust, hoff));
         poseStack.translate(0,0, -0.001f);
-        renderEye(poseStack, bufferIn, renderTypeGlow, LightTexture.FULL_SKY, packedOverlayCoords, mixAlpha, aggroColorAdjust, hoff);
+        collector.order(1).submitCustomGeometry(poseStack, renderTypeGlow, (pose, vertexConsumer) ->
+                renderEye(pose, vertexConsumer, LightTexture.FULL_SKY, mixAlpha, aggroColorAdjust, hoff));
 
         poseStack.popPose();
 
-        super.render(state, poseStack, bufferIn, packedLightmapCoords);
+        super.submit(state, poseStack, collector, cameraRenderState);
     }
 
-    private static void renderEye(PoseStack poseStack,
-                                  MultiBufferSource bufferIn, RenderType renderType,
-                                  int packedLightmapCoords, int packedOverlayCoords,
+    private static void renderEye(PoseStack.Pose pose, VertexConsumer buffer,
+                                  int packedLightmapCoords,
                                   float mixAlpha, float aggroColorAdjust, float hoff)
     {
-        VertexConsumer buffer = bufferIn.getBuffer(renderType);
-        Matrix4f matrix = poseStack.last().pose();
+        Matrix4f matrix = pose.pose();
         buffer.addVertex(matrix, -WIDTH, -HEIGHT, 0)
                 .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .setUv(0, hoff + TEXHEIGHT)
-                .setOverlay(packedOverlayCoords)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(packedLightmapCoords)
                 .setNormal(0, 0, 1);
         buffer.addVertex(matrix, -WIDTH, HEIGHT, 0)
                 .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .setUv(0, hoff)
-                .setOverlay(packedOverlayCoords)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(packedLightmapCoords)
                 .setNormal(0, 0, 1);
         buffer.addVertex(matrix, WIDTH, HEIGHT, 0)
                 .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .setUv(TEXWIDTH, hoff)
-                .setOverlay(packedOverlayCoords)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(packedLightmapCoords)
                 .setNormal(0, 0, 1);
         buffer.addVertex(matrix, WIDTH, -HEIGHT, 0)
                 .setColor(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha)
                 .setUv(TEXWIDTH, hoff + TEXHEIGHT)
-                .setOverlay(packedOverlayCoords)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(packedLightmapCoords)
                 .setNormal(0, 0, 1);
     }

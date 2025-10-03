@@ -164,7 +164,7 @@ public class EyesEntity extends Monster
     {
         super.aiStep();
 
-        if (level().isClientSide)
+        if (level().isClientSide())
         {
             if (getIsDormant())
                 return;

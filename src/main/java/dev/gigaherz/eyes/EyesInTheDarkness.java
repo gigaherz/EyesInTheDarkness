@@ -56,7 +56,7 @@ public class EyesInTheDarkness
             .build(ResourceKey.create(ENTITY_TYPES.getRegistryKey(), name)));
 
     public static final DeferredItem<SpawnEggItem> EYES_EGG = ITEMS.registerItem("eyes_spawn_egg", props ->
-            new SpawnEggItem(EYES.get(), props));
+            new SpawnEggItem(props.spawnEgg(EYES.get())));
 
     public EyesInTheDarkness(ModContainer container, IEventBus modEventBus)
     {

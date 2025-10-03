@@ -54,14 +54,12 @@ public class EyesSpawningManager implements CustomSpawner
 
     private final Stopwatch watch = Stopwatch.createUnstarted();
     private final ServerLevel parent;
-    private final ServerChunkCache chunkSource;
     private int cooldown;
     private int ticks;
 
-    private EyesSpawningManager(ServerLevel world)
+    private EyesSpawningManager(ServerLevel level)
     {
-        this.parent = world;
-        this.chunkSource = parent.getChunkSource();
+        this.parent = level;
         this.cooldown = 0;
     }
 
@@ -88,7 +86,7 @@ public class EyesSpawningManager implements CustomSpawner
     }
 
     @Override
-    public void tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies)
+    public void tick(ServerLevel level, boolean spawnEnemies)
     {
         if (level != parent)
             return;

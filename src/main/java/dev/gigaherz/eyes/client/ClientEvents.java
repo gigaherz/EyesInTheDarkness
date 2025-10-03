@@ -1,11 +1,9 @@
 package dev.gigaherz.eyes.client;
 
 import dev.gigaherz.eyes.EyesInTheDarkness;
-import dev.gigaherz.eyes.entity.EyesEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID)

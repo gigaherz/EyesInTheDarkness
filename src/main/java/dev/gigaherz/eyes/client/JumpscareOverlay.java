@@ -283,11 +283,11 @@ public class JumpscareOverlay implements GuiLayer
         }
 
         @Override
-        public void buildVertices(VertexConsumer consumer, float z) {
-            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y0(), z).setUv(this.u0(), this.v0()).setColor(this.color());
-            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y1(), z).setUv(this.u0(), this.v1()).setColor(this.color());
-            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y1(), z).setUv(this.u1(), this.v1()).setColor(this.color());
-            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y0(), z).setUv(this.u1(), this.v0()).setColor(this.color());
+        public void buildVertices(VertexConsumer consumer) {
+            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y0()).setUv(this.u0(), this.v0()).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y1()).setUv(this.u0(), this.v1()).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y1()).setUv(this.u1(), this.v1()).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y0()).setUv(this.u1(), this.v0()).setColor(this.color());
         }
 
         @Nullable
