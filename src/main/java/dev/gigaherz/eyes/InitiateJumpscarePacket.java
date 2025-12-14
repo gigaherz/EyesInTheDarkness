@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record InitiateJumpscarePacket(double px, double py, double pz)
@@ -18,7 +18,7 @@ public record InitiateJumpscarePacket(double px, double py, double pz)
             InitiateJumpscarePacket::new
     );
 
-    public static final ResourceLocation ID = EyesInTheDarkness.location("server_hello");
+    public static final Identifier ID = EyesInTheDarkness.location("server_hello");
 
     public static final Type<InitiateJumpscarePacket> TYPE = new Type<>(ID);
 

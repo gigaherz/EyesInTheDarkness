@@ -5,7 +5,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
@@ -75,22 +75,22 @@ public class BiomeRules
     private static class Rule
     {
         public final boolean allow;
-        public final ResourceLocation registryName;
+        public final Identifier registryName;
         public final TagKey<Biome> tagKey;
 
         private Rule(boolean allow, @Nullable String registryName, @Nullable String tagName)
         {
             this.allow = allow;
-            this.registryName = registryName != null ? ResourceLocation.parse(registryName) : null;
-            this.tagKey = tagName != null ? TagKey.create(Registries.BIOME, ResourceLocation.parse(tagName)) : null;
+            this.registryName = registryName != null ? Identifier.parse(registryName) : null;
+            this.tagKey = tagName != null ? TagKey.create(Registries.BIOME, Identifier.parse(tagName)) : null;
         }
 
         public boolean test(ServerLevel level, Holder<Biome> biome)
         {
             if (registryName != null)
             {
-                ResourceLocation name = biome.unwrap().map(
-                        ResourceKey::location,
+                Identifier name = biome.unwrap().map(
+                        ResourceKey::identifier,
                         b -> level.registryAccess().lookupOrThrow(Registries.BIOME).getKey(b));
                 return registryName.equals(name);
             }

@@ -7,7 +7,6 @@ import dev.gigaherz.eyes.config.ConfigData;
 import dev.gigaherz.eyes.config.DimensionRules;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -15,20 +14,17 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.CustomSpawner;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Field;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
@@ -96,7 +92,7 @@ public class EyesSpawningManager implements CustomSpawner
 
         cooldown = 150;
 
-        if (!spawnEnemies || !ConfigData.enableNaturalSpawn || !parent.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING))
+        if (!spawnEnemies || !ConfigData.enableNaturalSpawn || !parent.getGameRules().get(GameRules.SPAWN_MOBS))
             return;
 
         if (!DimensionRules.isDimensionAllowed(parent))

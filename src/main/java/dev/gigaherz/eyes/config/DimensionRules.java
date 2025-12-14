@@ -3,7 +3,7 @@ package dev.gigaherz.eyes.config;
 import com.google.common.collect.Lists;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,13 +65,13 @@ public class DimensionRules
     {
         public final boolean allow;
         public final boolean isType;
-        public final ResourceLocation name;
+        public final Identifier name;
 
         private Rule(boolean allow, boolean isType, String key)
         {
             this.allow = allow;
             this.isType = isType;
-            this.name = key == null ? null : ResourceLocation.parse(key);
+            this.name = key == null ? null : Identifier.parse(key);
         }
 
         @Override
@@ -85,7 +85,7 @@ public class DimensionRules
             }
             else
             {
-                return name.equals(world.dimension().location());
+                return name.equals(world.dimension().identifier());
             }
         }
     }

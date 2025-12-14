@@ -1,8 +1,11 @@
 package dev.gigaherz.eyes.client;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.serialization.Codec;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.client.DeltaTracker;
@@ -13,7 +16,7 @@ import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
@@ -31,8 +34,8 @@ import javax.annotation.Nullable;
 @EventBusSubscriber(value = Dist.CLIENT, modid = EyesInTheDarkness.MODID)
 public class JumpscareOverlay implements GuiLayer
 {
-    private static final ResourceLocation TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
-    private static final ResourceLocation TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
+    private static final Identifier TEXTURE_EYES = EyesInTheDarkness.location("textures/entity/eyes2.png");
+    private static final Identifier TEXTURE_FLASH = EyesInTheDarkness.location("textures/creepy.png");
 
     public static JumpscareOverlay INSTANCE = new JumpscareOverlay();
 
@@ -204,7 +207,7 @@ public class JumpscareOverlay implements GuiLayer
     public void customBlit(
             GuiGraphics graphics,
             RenderPipeline pipeline,
-            ResourceLocation texture,
+            Identifier texture,
             float x0, float y0,
             float xw, float yh,
             float u0, float v0,
@@ -216,7 +219,7 @@ public class JumpscareOverlay implements GuiLayer
         graphics.submitGuiElementRenderState(
                         new BlitRenderStateF(
                                 pipeline,
-                                TextureSetup.singleTexture(gputextureview),
+                                TextureSetup.singleTexture(gputextureview, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST)),
                                 new Matrix3x2f(graphics.pose()),
                                 x0,
                                 y0,

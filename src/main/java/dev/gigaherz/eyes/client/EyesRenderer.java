@@ -5,24 +5,25 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.LightLayer;
 import org.joml.Matrix4f;
 
 public class EyesRenderer extends EntityRenderer<EyesEntity, EyesRenderer.EyesRenderState>
 {
-    private static final ResourceLocation TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
-    private final RenderType renderTypeBase = RenderType.entityTranslucentEmissive(TEXTURE);
-    private final RenderType renderTypeGlow = RenderType.eyes(TEXTURE);
+    private static final Identifier TEXTURE = EyesInTheDarkness.location("textures/entity/eyes1.png");
+    private final RenderType renderTypeBase = RenderTypes.entityTranslucentEmissive(TEXTURE);
+    private final RenderType renderTypeGlow = RenderTypes.eyes(TEXTURE);
 
     private static final float WIDTH = .25f;
     private static final float HEIGHT = WIDTH * 5 / 13f;
@@ -52,13 +53,14 @@ public class EyesRenderer extends EntityRenderer<EyesEntity, EyesRenderer.EyesRe
     {
         super.extractRenderState(entity, state, partialTick);
 
-        var position = entity.getBlockPosEyes();
-        state.blockLight = entity.level().getBrightness(LightLayer.BLOCK, position);
+        var level = entity.level();
 
-        if (entity.level().dimensionType().hasSkyLight())
+        var position = entity.getBlockPosEyes();
+        state.blockLight = level.getBrightness(LightLayer.BLOCK, position);
+
+        if (level.dimensionType().hasSkyLight())
         {
-            float skyLight = entity.level().getBrightness(LightLayer.SKY, position)
-                    - (1 - ((ClientLevel) entity.level()).getSkyDarken(partialTick)) * 11;
+            float skyLight = level.getBrightness(LightLayer.SKY, position) - level.getSkyDarken();
 
             state.blockLight = Math.max(state.blockLight, skyLight);
         }

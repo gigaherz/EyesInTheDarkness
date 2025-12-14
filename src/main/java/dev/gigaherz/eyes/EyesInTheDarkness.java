@@ -5,13 +5,13 @@ import dev.gigaherz.eyes.entity.EyesEntity;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.feline.Ocelot;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -121,8 +121,8 @@ public class EyesInTheDarkness
         }
     }
 
-    public static ResourceLocation location(String location)
+    public static Identifier location(String location)
     {
-        return ResourceLocation.fromNamespaceAndPath(MODID, location);
+        return Identifier.fromNamespaceAndPath(MODID, location);
     }
 }

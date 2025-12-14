@@ -331,17 +331,6 @@ public class EyesEntity extends Monster
         return BlockPos.containing(this.getX(), this.getY() + getEyeHeight(), this.getZ());
     }
 
-    public float getSunBrightness()
-    {
-        float angleRadians = level().getSunAngle(1);
-        float f1 = 1.0F - (Mth.cos(angleRadians) * 2.0F + 0.2F);
-        f1 = Mth.clamp(f1, 0.0F, 1.0F);
-        f1 = 1.0F - f1;
-        f1 = (float) ((double) f1 * (1.0D - (double) (level().getRainLevel(1) * 5.0F) / 16.0D));
-        f1 = (float) ((double) f1 * (1.0D - (double) (level().getThunderLevel(1) * 5.0F) / 16.0D));
-        return f1 * 0.8F + 0.2F;
-    }
-
     private float getLightLevel(boolean excludeDaylight)
     {
         BlockPos position = getBlockPosEyes();
@@ -350,17 +339,10 @@ public class EyesEntity extends Monster
         {
             if (level().dimensionType().hasSkyLight())
             {
-                float skyLight = level().getBrightness(LightLayer.SKY, position)
-                        - (1 - getSunBrightness()) * 11;
                 float skyLight1 = level().getBrightness(LightLayer.SKY, position)
                         - level().getSkyDarken();
 
-                if (skyLight != skyLight1)
-                {
-                    skyLight = skyLight;
-                }
-
-                blockLight = Math.max(blockLight, skyLight);
+                blockLight = Math.max(blockLight, skyLight1);
             }
         }
         else

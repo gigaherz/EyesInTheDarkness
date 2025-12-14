@@ -3,11 +3,11 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.110'
+    id 'net.neoforged.moddev' version '2.0.124'
 }
 
-neoForge.version = "21.9.3-beta"
-version = "1.9.0"
+neoForge.version = "21.11.6-beta"
+version = "1.10.0"
 group = "dev.gigaherz.eyes"
 base.archivesName = "EyesInTheDarkness-${neoForge.minecraftVersion}"
 
