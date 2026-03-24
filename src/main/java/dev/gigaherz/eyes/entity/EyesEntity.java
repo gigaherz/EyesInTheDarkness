@@ -117,7 +117,7 @@ public class EyesEntity extends Monster
         if (ConfigData.eyeAggressionDependsOnLocalDifficulty)
         {
             float difficulty = difficultyInstance.getSpecialMultiplier();
-            setAggroLevel(level().random.nextFloat() * difficulty);
+            setAggroLevel(level().getRandom().nextFloat() * difficulty);
         }
         return super.finalizeSpawn(level, difficultyInstance, mobSpawnType, spawnGroupData);
     }
@@ -171,7 +171,7 @@ public class EyesEntity extends Monster
 
             if (!blinkingState)
             {
-                if (level().random.nextFloat() < .02f)
+                if (level().getRandom().nextFloat() < .02f)
                 {
                     blinkingState = true;
                     blinkProgress = 0;

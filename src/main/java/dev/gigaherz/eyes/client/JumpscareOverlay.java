@@ -10,12 +10,12 @@ import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.config.ConfigData;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -101,7 +101,7 @@ public class JumpscareOverlay implements GuiLayer
 
 
     @Override
-    public void render(GuiGraphics graphics, DeltaTracker partialTicks)
+    public void render(GuiGraphicsExtractor graphics, DeltaTracker partialTicks)
     {
         if (!visible) return;
 
@@ -205,7 +205,7 @@ public class JumpscareOverlay implements GuiLayer
     }
 
     public void customBlit(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             RenderPipeline pipeline,
             Identifier texture,
             float x0, float y0,

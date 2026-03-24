@@ -187,14 +187,14 @@ public class EyesSpawningManager implements CustomSpawner
 
         for(int i=0;i<100;i++)
         {
-            double sX = (1-2*parent.random.nextFloat()) * d + positionVec.x();
-            double sZ = (1-2*parent.random.nextFloat()) * d + positionVec.z();
+            double sX = (1-2*parent.getRandom().nextFloat()) * d + positionVec.x();
+            double sZ = (1-2*parent.getRandom().nextFloat()) * d + positionVec.z();
 
             pos.set(sX, 0, sZ);
 
             int maxY = parent.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
 
-            double sY = Mth.clamp(parent.random.nextFloat() * d + positionVec.y(), 0, maxY);
+            double sY = Mth.clamp(parent.getRandom().nextFloat() * d + positionVec.y(), 0, maxY);
             pos.setY((int) sY);
 
             double pX = pos.getX() + 0.5D;
@@ -233,7 +233,7 @@ public class EyesSpawningManager implements CustomSpawner
             return false;
         }
 
-        return SpawnPlacements.checkSpawnRules(entityType, serverWorld, EntitySpawnReason.NATURAL, pos, serverWorld.random)
+        return SpawnPlacements.checkSpawnRules(entityType, serverWorld, EntitySpawnReason.NATURAL, pos, serverWorld.getRandom())
                 && serverWorld.noCollision(entityType.getSpawnAABB(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D));
     }
 }

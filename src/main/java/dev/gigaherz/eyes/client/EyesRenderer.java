@@ -4,17 +4,17 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.gigaherz.eyes.EyesInTheDarkness;
 import dev.gigaherz.eyes.entity.EyesEntity;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.LightLayer;
 import org.joml.Matrix4f;
@@ -92,7 +92,7 @@ public class EyesRenderer extends EntityRenderer<EyesEntity, EyesRenderer.EyesRe
                 renderEye(pose, vertexConsumer, state.lightCoords, mixAlpha, aggroColorAdjust, hoff));
         poseStack.translate(0,0, -0.001f);
         collector.order(1).submitCustomGeometry(poseStack, renderTypeGlow, (pose, vertexConsumer) ->
-                renderEye(pose, vertexConsumer, LightTexture.FULL_SKY, mixAlpha, aggroColorAdjust, hoff));
+                renderEye(pose, vertexConsumer, LightCoordsUtil.FULL_SKY, mixAlpha, aggroColorAdjust, hoff));
 
         poseStack.popPose();
 
