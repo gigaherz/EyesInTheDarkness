@@ -6,8 +6,8 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.141'
 }
 
-neoForge.version = "26.1.0.1-beta"
-version = "1.11.0"
+neoForge.version = "26.2.0.1-beta"
+version = "1.12.0"
 group = "dev.gigaherz.eyes"
 base.archivesName = "EyesInTheDarkness-${neoForge.minecraftVersion}"
 
@@ -28,11 +28,6 @@ neoForge {
         server {
             server()
         }
-    }
-
-    parchment {
-        minecraftVersion="1.21.6"
-        mappingsVersion="BLEEDING-SNAPSHOT"
     }
 
     mods {

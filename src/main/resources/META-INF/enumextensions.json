@@ -3,8 +3,8 @@
     {
       "enum": "net/minecraft/world/entity/MobCategory",
       "name": "EYESINTHEDARKNESS_EYES",
-      "constructor": "(Ljava/lang/String;IZZI)V",
-      "parameters": [ "eyesinthedarkness:eyes", 15, false, false, 64 ]
+      "constructor": "(Ljava/lang/String;Ljava/lang/String;IZZI)V",
+      "parameters": [ "eyesinthedarkness:eyes", "EY", 15, false, false, 64 ]
     }
   ]
 }
